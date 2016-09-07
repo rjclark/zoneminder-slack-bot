@@ -1,23 +1,28 @@
 #!/usr/bin/env python
 #! -*- coding: utf-8 -*-
 
+"""
+Utility to obtain the number ID for a Slack user (bot)
+"""
+
 import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 
 from slackclient import SlackClient
 
+
 BOT_NAME = 'zoneminder'
 
-slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
+SLACK_CLIENT = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 
 if __name__ == "__main__":
-    api_call = slack_client.api_call("users.list")
-    if api_call.get('ok'):
+    API_CALL = SLACK_CLIENT.api_call("users.list")
+    if API_CALL.get('ok'):
         # retrieve all users so we can find our bot
-        users = api_call.get('members')
-        for user in users:
+        USERS = API_CALL.get('members')
+        for user in USERS:
             if 'name' in user and user.get('name') == BOT_NAME:
-                print("Bot ID for '" + user['name'] + "' is " + user.get('id'))
+                print "Bot ID for '{0}' is {1}".format(user['name'], user.get('id'))
     else:
-        print("could not find bot user with the name " + BOT_NAME)
+        print "could not find bot user with the name {0}".format(BOT_NAME)
