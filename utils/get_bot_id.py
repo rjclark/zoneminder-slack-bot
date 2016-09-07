@@ -3,8 +3,11 @@
 
 """
 Utility to obtain the number ID for a Slack user (bot)
-"""
 
+This example code is from https://www.fullstackpython.com/blog/build-first-slack-bot-python.html
+(c) Matt Makai
+
+"""
 import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))

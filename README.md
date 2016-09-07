@@ -65,4 +65,6 @@ variable rather than putting it into any source file.
 
     \# export BOT_ID='bot id returned by script'
 
-    
+Later on the BOT_ID and SLACK_API_TOKEN (along with a lot of the other config options
+will be loaded from a config file. This is to make running the script as a daemon less of
+a hassle.
