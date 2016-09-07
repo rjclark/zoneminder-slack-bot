@@ -1,10 +1,6 @@
 
 # Created by https://www.gitignore.io/api/python,git,sublimetext,pycharm
 
-### Virtual Env ###
-# This is the name you gave to the virtualenv command
-zoneminder-slack-bot 
-
 ### local only files ###
 local.*
 
@@ -186,5 +182,5 @@ fabric.properties
 
 # *.iml
 # modules.xml
-# .idea/misc.xml 
+# .idea/misc.xml
 # *.ipr
