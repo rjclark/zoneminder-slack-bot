@@ -2,7 +2,7 @@ ZoneMinder Slack Bot
 ====================
 
 This is a [Slack Bot](https://api.slack.com/bot-users) that monitors one or
-more (Slack)[https://slack.com] channels for commands and interacts with
+more [Slack](https://slack.com) channels for commands and interacts with
 a [ZoneMinder](https://www.zoneminder.com/) system to report events and
 obtain information.
 
