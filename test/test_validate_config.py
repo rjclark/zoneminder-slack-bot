@@ -14,10 +14,15 @@
 #   limitations under the License.
 #
 
+import os
 from nose.tools import assert_equal
 import zonebot
-import ConfigParser
 import logging
+
+try :
+    import ConfigParser
+except:
+    from configparser import ConfigParser
 
 logging.basicConfig(level=logging.CRITICAL)
 logging.getLogger("zonebot").disabled = True
@@ -28,3 +33,13 @@ def test_null_config():
 def test_empty_config():
     config = ConfigParser.ConfigParser()
     assert zonebot.validate_config(config) == False
+
+def test_example_config_valid():
+    EXAMPLE_CONFIG = os.path.join(os.path.dirname(__file__), "..", "docs", "zonebot-example-config.cfg")
+
+    assert os.path.isfile(EXAMPLE_CONFIG)
+
+    config = ConfigParser.ConfigParser()
+    config.read(EXAMPLE_CONFIG)
+
+

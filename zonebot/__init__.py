@@ -24,7 +24,11 @@ A Slack bot that can communicate and interact with a ZoneMinder security system.
 import sys
 import logging
 import argparse
-import ConfigParser
+
+try :
+    import ConfigParser
+except:
+    from configparser import ConfigParser
 
 VERSION = '1.0'
 AUTHOR = 'Robert Clark <clark@exiter.com>'

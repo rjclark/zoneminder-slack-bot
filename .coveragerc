@@ -1,7 +1,11 @@
 [run]
+
+# Measure branch coverage in addition to statement coverage.
 branch = True
-source = nose2
-include = zonebot/*
-omit = zonebot/*/tests/*
-       zonebot/tests/*
-       test_*.*
+
+include =
+   zonebot/*
+
+omit =
+   # Unit test files
+   test/*
