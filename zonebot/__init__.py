@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #! -*- coding: utf-8 -*-
 
 #
@@ -82,7 +81,7 @@ def validate_config(config):
     # Finally
     return result
 
-if __name__ == "__main__":
+def main():
     #  Set up the command line arguments we support
     PARSER = argparse.ArgumentParser(description='A Slack bot to interact with ZoneMinder',
                                      epilog="Version " + VERSION + " (c) " + AUTHOR)

@@ -1,5 +1,5 @@
-ZoneMinder Slack Bot
-====================
+# ZoneMinder Slack Bot
+
 
 This is a [Slack Bot](https://api.slack.com/bot-users) that monitors one or
 more [Slack](https://slack.com) channels for commands and interacts with
@@ -16,55 +16,67 @@ By providing a bot that can interact with both ZoneMinder and Slack, remote
 access to and notification from ZoneMinder is possible, without needing a static
 IP and using the security provided by the Slack environment.
 
-**NOTE:** If you are only interested in installing and running the bot from a existing
-package, then please refer to the `INSTALLING.md` document, This document explains how
-to build and package the bot.
+## Installation
 
-Requirements and Tools
-----------------------
+### Easiest : Using pip
 
-If you are new to the concept of building either a Python application or a Slack
-bot, I encourage you to review the excellent posting over at 
-[Full Stack Python](https://www.fullstackpython.com) called
-[How to Build Your First Slack Bot with Python](https://www.fullstackpython.com/blog/build-first-slack-bot-python.html). This document will provide a summary of the 
-requirements and steps necessary, but it assumes a basica familiarity with the
-tools and environment that the linked article covers in some depth.
+The easiest method of installation is via `pip` as the package is available
+from the (Python Package Index)[https://pypi.python.org/pypi]
 
-This list of tools from the [First Slack Bot](https://www.fullstackpython.com/blog/build-first-slack-bot-python.html) blog is all that is needed
-to buil this bot.
+    pip install zonebot
 
-> * Either [Python 2 or 3](https://wiki.python.org/moin/Python2orPython3)
-> * [pip](https://pip.pypa.io/en/stable/) and [virtualenv](https://virtualenv.pypa.io/> en/stable/) to handle Python application dependencies
-> * A [Slack account](https://slack.com/) with a team on which you have API access.
-> * Official Python [slackclient](https://github.com/slackhq/python-slackclient) code library built by the Slack team
-> * [Slack API testing token](https://api.slack.com/tokens)
->
-> It is also useful to have the [Slack API docs](https://api.slack.com/) handy while you're building this tutorial.
+This will create a script called `zonebot` in your path ("`which zonebot`" will tell
+you exactly where) that you can run.
 
-Setup
------
+### Download source and build
 
-1. Use `virtualenv` and `pip` to create a development 
+You can download the source from GitHub and build it yourself if you would like.
 
-    \# virtualenv venv  
-    \# source venv/bin/activate  
-    (or . venv/bin/activate.fish of you use the fish shell)
+1. Download the release you want from https://github.com/nogudnik/zoneminder-slack-bot/releases
+1. Extract it
+1. Run
 
-    \# venv/bin/pip install slackclient
+    python setop.py build install
 
-2. Obtain a Slack API token (and optionally create a dedicated [bot user](https://api.slack.com/bot-users) for the API token) from Slack
+### Clone the source and build
 
-3. Since the API token needs to remain secret, you should set it as an environment
-variable rather than putting it into any source file.
+You can also clone the source from GitHub if you would like to build the very latest
+version. **This is not guaranteed to work**.
 
-    \# export SLACK_BOT_TOKEN='your slack token pasted here'
+1. Clone this repository https://github.com/nogudnik/zoneminder-slack-bot
+1. Run
 
-4. Run `utils/get_bot_id.py` to get the number ID of the bot (as opposed to the nameyou gave the bot user. This is also our first real test of the API token
+    python setop.py build install
 
-5. Put the bot ID into a n environment variable as well.
+Configuration
+-------------
 
-    \# export BOT_ID='bot id returned by script'
+Also installed is a sample configuiration file called `zonebot-example-config.cfg`.
+You can copy this to your preferred location for config files and edit it to put in
+your [Slack API token](https://api.slack.com/tokens) and the
+[ID of your bot user](https://api.slack.com/bot-users)
 
-Later on the BOT_ID and SLACK_API_TOKEN (along with a lot of the other config options
-will be loaded from a config file. This is to make running the script as a daemon less of
-a hassle.
+The example configuration file is installed into the Pyth package directoy on
+your system, which can be somewhat difficult to find. The latest version of the
+file is always available from
+[the GitHub repossitory](https://github.com/nogudnik/zoneminder-slack-bot/blob/master/docs/zonebot-example-config.cfg)
+if needed.
+
+To configure the bot, you will need several pieces of information
+
+1. Your Slack API token. This can be found by
+    1. Going to the [Slack Bot user page](https://api.slack.com/bot-users) and creating
+       a new bot user. You will have a chance to get the API token here
+    2. Going to the page for your [existing bot user](https://my.slack.com/apps/manage/custom-integrations).
+2. The User ID of your bot user. This can be found by:
+    1. Setting the `SLACK_BOT_TOKEN` environment variable to your API token
+    2. Running the script `get_bit_id.py` distributed with this package or 
+       [from the GitHub repository(https://github.com/nogudnik/zoneminder-slack-bot/blob/master/utils/get_bot_id.py)
+
+Building and Contributing
+-------------------------
+
+Instructions for building the ZoneMinder Slack bot are in the `docs/BUILDING.md`
+file.
+
+If you wish to contribute, pull requests against the [GitHub repository](https://github.com/nogudnik/zoneminder-slack-bot) are welcomed.

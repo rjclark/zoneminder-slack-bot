@@ -1,0 +1,5 @@
+include README.md
+include LICENSE
+include docs/BUILDING.md
+include docs/zonebot-example-config.cfg
+include utils/get_bot_id.py
