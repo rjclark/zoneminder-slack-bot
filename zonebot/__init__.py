@@ -29,6 +29,8 @@ import ConfigParser
 VERSION = u'1.0'
 AUTHOR = u'Robert Clark <clark@exiter.com>'
 
+LOGGER = logging.getLogger("zonebot")
+
 def init_logging(config):
     """
     Sets up the logging for the project. This will be to one of (in order)
@@ -59,6 +61,10 @@ def validate_config(config):
     :returns: true if the config is value and false (with errors logged) otherwise
     """
 
+    if not config:
+        LOGGER.error("No config at all provided")
+        return False
+
     # These are all the sections and options we require. If any are missing,
     # the bot will not start up.
     REQUIRED = {
@@ -70,12 +76,12 @@ def validate_config(config):
 
     for section in REQUIRED.iterkeys():
         if not config.has_section(section):
-            logging.error("No [{0}] section in the configuration".format(section))
+            LOGGER.error("No [{0}] section in the configuration".format(section))
             result = False
         else:
             for option in REQUIRED[section]:
                 if not config.has_option(section, option):
-                    logging.error("Required option {0} missing from section [{1}]".format(option, section))
+                    LOGGER.error("Required option {0} missing from section [{1}]".format(option, section))
                     result = False
 
     # Finally
@@ -102,10 +108,10 @@ def main():
 
     init_logging(config)
 
-    logging.info("Starting up")
-    logging.info("Version {}".format(VERSION))
+    LOGGER.info("Starting up")
+    LOGGER.info("Version {}".format(VERSION))
 
     if not validate_config(config):
         sys.exit(1)
 
-    logging.info("Configuration is valid")
+    LOGGER.info("Configuration is valid")
