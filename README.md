@@ -1,6 +1,5 @@
 # ZoneMinder Slack Bot
 
-
 This is a [Slack Bot](https://api.slack.com/bot-users) that monitors one or
 more [Slack](https://slack.com) channels for commands and interacts with
 a [ZoneMinder](https://www.zoneminder.com/) system to report events and
@@ -21,7 +20,7 @@ IP and using the security provided by the Slack environment.
 ### Easiest : Using pip
 
 The easiest method of installation is via `pip` as the package is available
-from the (Python Package Index)[https://pypi.python.org/pypi]
+from the [Python Package Index](https://pypi.python.org/pypi)
 
     pip install zonebot
 
@@ -34,9 +33,7 @@ You can download the source from GitHub and build it yourself if you would like.
 
 1. Download the release you want from https://github.com/nogudnik/zoneminder-slack-bot/releases
 1. Extract it
-1. Run
-
-    python setop.py build install
+1. Run `python setup.py build install`
 
 ### Clone the source and build
 
@@ -44,9 +41,7 @@ You can also clone the source from GitHub if you would like to build the very la
 version. **This is not guaranteed to work**.
 
 1. Clone this repository https://github.com/nogudnik/zoneminder-slack-bot
-1. Run
-
-    python setop.py build install
+1. Run `python setup.py build install`
 
 Configuration
 -------------
@@ -70,7 +65,7 @@ To configure the bot, you will need several pieces of information
     2. Going to the page for your [existing bot user](https://my.slack.com/apps/manage/custom-integrations).
 2. The User ID of your bot user. This can be found by:
     1. Setting the `SLACK_BOT_TOKEN` environment variable to your API token
-    2. Running the script `get_bit_id.py` distributed with this package or 
+    2. Running the script `get_bit_id.py` distributed with this package or
        [from the GitHub repository(https://github.com/nogudnik/zoneminder-slack-bot/blob/master/utils/get_bot_id.py)
 
 Building and Contributing
@@ -79,4 +74,7 @@ Building and Contributing
 Instructions for building the ZoneMinder Slack bot are in the `docs/BUILDING.md`
 file.
 
-If you wish to contribute, pull requests against the [GitHub repository](https://github.com/nogudnik/zoneminder-slack-bot) are welcomed.
+[![Build Status](https://travis-ci.org/nogudnik/zoneminder-slack-bot.svg?branch=master)](https://travis-ci.org/nogudnik/zoneminder-slack-bot)
+
+If you wish to contribute, pull requests against the
+[GitHub repository](https://github.com/nogudnik/zoneminder-slack-bot) are welcomed.

@@ -9,8 +9,12 @@ python:
 
 # command to install dependencies
 install:
+  - pip install coveralls
   - python setup.py install
 
 # Run the nose framework to discover and run test classes
 script:
-  - nosetests
+  - coverage run --source=zonebot -m nose2.__main__ -v
+
+after_success:
+   - coveralls
