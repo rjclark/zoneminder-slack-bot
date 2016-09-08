@@ -1,4 +1,5 @@
 language: python
+sudo: false
 
 python:
   - "2.7"
@@ -9,12 +10,12 @@ python:
 
 # command to install dependencies
 install:
-  - pip install coveralls
-  - python setup.py install
+  - travis_retry pip install -r requirements.txt
 
 # Run the nose framework to discover and run test classes
 script:
-  - coverage run --source=zonebot -m nose2.__main__ -v
+  - if [[ "${TRAVIS_PYTHON_VERSION}" != 3.2 ]]; then CMD="coverage run"; else CMD="python";
+    fi; PYTHONPATH=. $CMD -m nose2.__main__ -v
 
 after_success:
    - coveralls

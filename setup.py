@@ -52,6 +52,7 @@ setup(
     'Programming Language :: Python :: 2',
     'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.2',
     'Programming Language :: Python :: 3.3',
     'Programming Language :: Python :: 3.4',
     'Programming Language :: Python :: 3.5',
@@ -65,11 +66,6 @@ setup(
   # https://packaging.python.org/en/latest/requirements.html
   install_requires=[
     'slackclient'
-  ],
-
-  tests_require = [
-    'nose2',
-    'coveralls'
   ],
 
   # To provide executable scripts, use entry points in preference to the

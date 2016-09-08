@@ -1,0 +1,6 @@
+cov-core==1.15.0
+coverage==4.2
+coveralls==1.1
+nose-cov==1.6
+nose2==0.6.5
+slackclient==1.0.1

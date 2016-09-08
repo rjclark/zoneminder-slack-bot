@@ -31,7 +31,7 @@ Setup
     \# source venv/bin/activate
     (or . venv/bin/activate.fish of you use the fish shell)
 
-    \# venv/bin/pip install slackclient
+    \# venv/bin/pip install install -r requirements.txt
 
 2. Obtain a Slack API token (and optionally create a dedicated [bot user](https://api.slack.com/bot-users) for the API token) from Slack
 
