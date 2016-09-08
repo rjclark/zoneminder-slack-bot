@@ -26,8 +26,8 @@ import logging
 import argparse
 import ConfigParser
 
-VERSION = u'1.0'
-AUTHOR = u'Robert Clark <clark@exiter.com>'
+VERSION = '1.0'
+AUTHOR = 'Robert Clark <clark@exiter.com>'
 
 LOGGER = logging.getLogger("zonebot")
 
