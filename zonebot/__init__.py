@@ -25,15 +25,13 @@ import sys
 import logging
 import argparse
 
-try :
-    import ConfigParser
-except:
-    from configparser import ConfigParser
+from configparser import ConfigParser
 
 VERSION = '1.0'
 AUTHOR = 'Robert Clark <clark@exiter.com>'
 
 LOGGER = logging.getLogger("zonebot")
+
 
 def init_logging(config):
     """
@@ -55,6 +53,7 @@ def init_logging(config):
         datefmt='%Y-%m-%d %I:%M:%S %p',
         level=logging.INFO
     )
+
 
 def validate_config(config):
     """
@@ -91,6 +90,7 @@ def validate_config(config):
     # Finally
     return result
 
+
 def main():
     #  Set up the command line arguments we support
     PARSER = argparse.ArgumentParser(description='A Slack bot to interact with ZoneMinder',
@@ -105,9 +105,9 @@ def main():
     ARGS = PARSER.parse_args()
 
     # Create the configuration from the arguments
-    config = ConfigParser.ConfigParser()
+    config = ConfigParser()
     if ARGS.config:
-        config.readfp(ARGS.config)
+        config.read_file(ARGS.config)
         ARGS.config.close()
 
     init_logging(config)
