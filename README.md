@@ -74,7 +74,7 @@ Building and Contributing
 Instructions for building the ZoneMinder Slack bot are in the `docs/BUILDING.md`
 file.
 
-[![Build Status](https://travis-ci.org/nogudnik/zoneminder-slack-bot.svg?branch=master)](https://travis-ci.org/nogudnik/zoneminder-slack-bot)
+[![Build Status](https://travis-ci.org/nogudnik/zoneminder-slack-bot.svg?branch=master)](https://travis-ci.org/nogudnik/zoneminder-slack-bot) [![Coverage Status](https://coveralls.io/repos/github/nogudnik/zoneminder-slack-bot/badge.svg?branch=master)](https://coveralls.io/github/nogudnik/zoneminder-slack-bot?branch=master)
 
 If you wish to contribute, pull requests against the
 [GitHub repository](https://github.com/nogudnik/zoneminder-slack-bot) are welcomed.
