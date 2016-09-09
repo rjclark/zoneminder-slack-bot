@@ -76,7 +76,8 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'zonebot=zonebot:main',
+            'zonebot=zonebot:zonebot_main',
+            'zonebot-alert=zonebot:zonebot_alert_main',
         ],
     },
 )

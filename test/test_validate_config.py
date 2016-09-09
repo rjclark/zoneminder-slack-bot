@@ -26,20 +26,20 @@ logging.getLogger("zonebot").disabled = True
 
 
 def test_null_config():
-    assert zonebot.validate_config(None) == False
+    assert not zonebot._validate_config(None)
 
 
 def test_empty_config():
     config = ConfigParser()
-    assert zonebot.validate_config(config) == False
+    assert not zonebot._validate_config(config)
 
 
 def test_example_config_valid():
-    EXAMPLE_CONFIG = os.path.join(os.path.dirname(__file__), "..", "docs", "zonebot-example-config.cfg")
+    example_config = os.path.join(os.path.dirname(__file__), "..", "docs", "zonebot-example-config.cfg")
 
-    assert os.path.isfile(EXAMPLE_CONFIG)
+    assert os.path.isfile(example_config)
 
     config = ConfigParser()
-    config.read(EXAMPLE_CONFIG)
+    config.read(example_config)
 
 

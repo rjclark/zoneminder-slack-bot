@@ -22,6 +22,7 @@ A Slack bot that can communicate and interact with a ZoneMinder security system.
 """
 
 import sys
+import os
 import logging
 import argparse
 
@@ -33,7 +34,36 @@ AUTHOR = 'Robert Clark <clark@exiter.com>'
 LOGGER = logging.getLogger("zonebot")
 
 
-def init_logging(config):
+def __splitall(path):
+    """
+    Splits an OS path into all its component elements
+
+    :param path: The absolute or relative path to be split
+    :type path: str
+
+    :return: An array containing all the elements of the path.
+    """
+    allparts = []
+    while 1:
+        parts = os.path.split(path)
+        if parts[0] == path:  # sentinel for absolute paths
+            allparts.insert(0, parts[0])
+            break
+        elif parts[1] == path:  # sentinel for relative paths
+            allparts.insert(0, parts[1])
+            break
+        else:
+            path = parts[0]
+            allparts.insert(0, parts[1])
+
+    # Strip a trailing blank, if there is one
+    if len(allparts) > 0 and allparts[-1] == '':
+        del allparts[-1]
+
+    return allparts
+
+
+def _init_logging(config):
     """
     Sets up the logging for the project. This will be to one of (in order)
 
@@ -55,7 +85,7 @@ def init_logging(config):
     )
 
 
-def validate_config(config):
+def _validate_config(config):
     """
     Make sure all the items necessary are available in the config object.
 
@@ -71,8 +101,8 @@ def validate_config(config):
     # These are all the sections and options we require. If any are missing,
     # the bot will not start up.
     required = {
-        "Slack" : ["api_token", "bot_id"],
-        "ZoneMinder" : ["url", "username", "password"]
+        "Slack": ["api_token", "bot_id"],
+        "ZoneMinder": ["url", "username", "password"]
     }
 
     result = True
@@ -91,7 +121,7 @@ def validate_config(config):
     return result
 
 
-def main():
+def zonebot_main():
     """
     Main method for the zonebot script
     """
@@ -114,12 +144,50 @@ def main():
         config.read_file(args.config)
         args.config.close()
 
-    init_logging(config)
+    _init_logging(config)
 
     LOGGER.info("Starting up")
     LOGGER.info("Version %s", VERSION)
 
-    if not validate_config(config):
+    if not _validate_config(config):
         sys.exit(1)
 
     LOGGER.info("Configuration is valid")
+
+
+def zonebot_alert_main():
+    """
+    Main method for the zonebot-alert script
+    """
+
+    #  Set up the command line arguments we support
+    parser = argparse.ArgumentParser(
+        description='A script that receives event notifications from ZoneMinder',
+        epilog="Version " + VERSION + " (c) " + AUTHOR)
+
+    parser.add_argument('event_dir',
+                        help='The directory in which the event files are stored')
+
+    args = parser.parse_args()
+
+    elements = __splitall(args.event_dir)
+
+    # Array will contain a variable number of leading elements
+    # but always ends with:
+    #   monitor/yy/mm/d/hh/mm/ss
+    # we split that to
+    #   monitor id
+    # and
+    #   yyyy-mm-dd hh:mm:ss
+
+    idx = -7
+    if elements[-1] == '':
+        # Just in case the path ends with a '/'
+        idx = -8
+
+    monitor = elements[idx]
+    timestamp = "20" + elements[idx+1] + "-" + elements[idx+2] + "-" + elements[idx+3] + " " + \
+                elements[idx+4] + ":" + elements[idx+5] + ":" + elements[idx+6]
+
+    print 'monitor:   %s' % monitor
+    print 'timestamp: %s' % timestamp
