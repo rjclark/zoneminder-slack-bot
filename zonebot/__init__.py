@@ -70,21 +70,21 @@ def validate_config(config):
 
     # These are all the sections and options we require. If any are missing,
     # the bot will not start up.
-    REQUIRED = {
+    required = {
         "Slack" : ["api_token", "bot_id"],
         "ZoneMinder" : ["url", "username", "password"]
     }
 
     result = True
 
-    for section in REQUIRED.iterkeys():
+    for section in required:
         if not config.has_section(section):
-            LOGGER.error("No [{0}] section in the configuration".format(section))
+            LOGGER.error("No [%s] section in the configuration", section)
             result = False
         else:
-            for option in REQUIRED[section]:
+            for option in required[section]:
                 if not config.has_option(section, option):
-                    LOGGER.error("Required option {0} missing from section [{1}]".format(option, section))
+                    LOGGER.error("Required option %s missing from section [%s]", option, section)
                     result = False
 
     # Finally
@@ -92,28 +92,32 @@ def validate_config(config):
 
 
 def main():
+    """
+    Main method for the zonebot script
+    """
+
     #  Set up the command line arguments we support
-    PARSER = argparse.ArgumentParser(description='A Slack bot to interact with ZoneMinder',
+    parser = argparse.ArgumentParser(description='A Slack bot to interact with ZoneMinder',
                                      epilog="Version " + VERSION + " (c) " + AUTHOR)
 
-    PARSER.add_argument('-c', '--config',
+    parser.add_argument('-c', '--config',
                         type=argparse.FileType('r'),
                         metavar='file',
                         required=True,
                         help='Load the specific config file')
 
-    ARGS = PARSER.parse_args()
+    args = parser.parse_args()
 
     # Create the configuration from the arguments
     config = ConfigParser()
-    if ARGS.config:
-        config.read_file(ARGS.config)
-        ARGS.config.close()
+    if args.config:
+        config.read_file(args.config)
+        args.config.close()
 
     init_logging(config)
 
     LOGGER.info("Starting up")
-    LOGGER.info("Version {}".format(VERSION))
+    LOGGER.info("Version %s", VERSION)
 
     if not validate_config(config):
         sys.exit(1)
