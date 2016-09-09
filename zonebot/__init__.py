@@ -189,5 +189,5 @@ def zonebot_alert_main():
     timestamp = "20" + elements[idx+1] + "-" + elements[idx+2] + "-" + elements[idx+3] + " " + \
                 elements[idx+4] + ":" + elements[idx+5] + ":" + elements[idx+6]
 
-    print 'monitor:   %s' % monitor
-    print 'timestamp: %s' % timestamp
+    print('monitor:   {}'.format(monitor))
+    print('timestamp: {}'.format(timestamp))
