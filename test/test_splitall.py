@@ -58,3 +58,12 @@ def test_trailing_slash():
     assert_equal('f', result[6])
     assert_equal('g', result[7])
     assert_equal('h', result[8])
+
+
+def test_relative_path():
+    result = zonebot.__splitall('a/b/c')
+
+    assert_equal(3, len(result))
+    assert_equal('a', result[0])
+    assert_equal('b', result[1])
+    assert_equal('c', result[2])
