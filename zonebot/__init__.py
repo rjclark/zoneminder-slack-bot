@@ -25,9 +25,8 @@ import sys
 import os
 import logging
 import argparse
-
 from configparser import ConfigParser
-from zonebot.zoneminder import ZoneMinder
+from .zoneminder import ZoneMinder
 
 __version__ = '1.0'
 __author__ = 'Robert Clark <clark@exiter.com>'
