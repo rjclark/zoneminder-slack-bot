@@ -262,4 +262,3 @@ def zonebot_alert_main():
     if 'key_frame' in data:
         data['image'] = zone_minder.load_image(data['key_frame'])
 
-    print data
