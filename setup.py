@@ -20,10 +20,6 @@ setup(
     name='zonebot',
     version='1.0',
 
-    description='A Slack bot to interact with ZoneMinder',
-
-    packages=['zonebot'],  # this must be the same as the name above
-
     author='Robert Clark',
     author_email='clark@exiter.com',
 
@@ -31,6 +27,17 @@ setup(
     license='Apache',
 
     keywords=['slack', 'zoneminder'],  # arbitrary keywords
+
+    description='A Slack bot to interact with ZoneMinder',
+
+    packages=[
+        'zonebot',  # this must be the same as the name above
+        'zonebot.zoneminder'
+    ],
+    package_dir={
+        'zonebot': 'zonebot',
+        'zonebot.zoneminder': 'zonebot/zoneminder'
+    },
 
     include_package_data=True,
 
