@@ -27,9 +27,10 @@ import logging
 import argparse
 
 from configparser import ConfigParser
+from zonebot.zoneminder import ZoneMinder
 
-VERSION = '1.0'
-AUTHOR = 'Robert Clark <clark@exiter.com>'
+__version__ = '1.0'
+__author__ = 'Robert Clark <clark@exiter.com>'
 
 LOGGER = logging.getLogger("zonebot")
 
@@ -166,7 +167,7 @@ def zonebot_main():
 
     #  Set up the command line arguments we support
     parser = argparse.ArgumentParser(description='A Slack bot to interact with ZoneMinder',
-                                     epilog="Version " + VERSION + " (c) " + AUTHOR)
+                                     epilog="Version " + __version__ + " (c) " + __author__)
 
     parser.add_argument('-c', '--config',
                         metavar='file',
@@ -187,7 +188,7 @@ def zonebot_main():
     _init_logging(config)
 
     LOGGER.info("Starting up")
-    LOGGER.info("Version %s", VERSION)
+    LOGGER.info("Version %s", __version__)
 
     if not _validate_config(config):
         sys.exit(1)
@@ -203,7 +204,7 @@ def zonebot_alert_main():
     #  Set up the command line arguments we support
     parser = argparse.ArgumentParser(
         description='A script that receives event notifications from ZoneMinder',
-        epilog="Version " + VERSION + " (c) " + AUTHOR)
+        epilog="Version " + __version__ + " (c) " + __author__)
 
     parser.add_argument('event_dir',
                         help='The directory in which the event files are stored')
@@ -222,6 +223,11 @@ def zonebot_alert_main():
         config.read(config_file)
     else:
         LOGGER.error("No config file could be located")
+        sys.exit(1)
+
+    _init_logging(config)
+
+    if not _validate_config(config):
         sys.exit(1)
 
     elements = __splitall(args.event_dir)
@@ -243,5 +249,17 @@ def zonebot_alert_main():
     timestamp = "20" + elements[idx+1] + "-" + elements[idx+2] + "-" + elements[idx+3] + " " + \
                 elements[idx+4] + ":" + elements[idx+5] + ":" + elements[idx+6]
 
-    print('monitor:   {}'.format(monitor))
-    print('timestamp: {}'.format(timestamp))
+    LOGGER.info("Sending alert about event at %s on monitor %s", timestamp, monitor)
+
+    zone_minder = ZoneMinder(config.get('ZoneMinder', 'url'),
+                             config.get('ZoneMinder', 'username'),
+                             config.get('ZoneMinder', 'password'))
+
+    data = zone_minder.load_event(monitor, timestamp)
+    data = zone_minder.parse_event(data)
+
+    # see if we have a message to load
+    if 'key_frame' in data:
+        data['image'] = zone_minder.load_image(data['key_frame'])
+
+    print data
