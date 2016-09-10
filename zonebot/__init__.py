@@ -85,6 +85,44 @@ def _init_logging(config):
     )
 
 
+def _find_config(command_line_value=None):
+    """
+    Find the config file, search in all well known locations, in order
+
+    :return: the config file to use. A exception is raised if no config file is found
+    :rtype: str
+    """
+
+    # Locations are checked in order
+
+    # Passed in value
+    locations = [command_line_value]
+
+    # XDG default directory
+    if 'XDG_CONFIG_HOME' in os.environ:
+        locations.append(os.path.join(os.environ['XDG_CONFIG_HOME'], 'zonebot', 'zonebot.conf'))
+
+    # each of XDG_CONFIG_DIRS
+    if 'XDG_CONFIG_DIRS' in os.environ:
+        for location in os.environ['XDG_CONFIG_DIRS'].split(':'):
+            locations.append(os.path.join(location, 'zonebot', 'zonebot.conf'))
+
+    # user's config directory, may duplicate XDG_CONFIG_HOME
+    locations.append(os.path.join(os.path.expanduser("~"), '.config', 'zonebot', 'zonebot.conf'))
+
+    # System config directory
+    locations.append('/etc/zonebot/zonebot.conf')
+
+    # Debian directory config directory
+    locations.append('/etc/default/zonebot')
+
+    for location in locations:
+        if location and os.path.isfile(location):
+            return location
+
+    raise ValueError("No config file was provided and none could be located.")
+
+
 def _validate_config(config):
     """
     Make sure all the items necessary are available in the config object.
@@ -131,18 +169,20 @@ def zonebot_main():
                                      epilog="Version " + VERSION + " (c) " + AUTHOR)
 
     parser.add_argument('-c', '--config',
-                        type=argparse.FileType('r'),
                         metavar='file',
-                        required=True,
-                        help='Load the specific config file')
+                        required=False,
+                        help='Load the specified config file')
 
     args = parser.parse_args()
 
     # Create the configuration from the arguments
     config = ConfigParser()
-    if args.config:
-        config.read_file(args.config)
-        args.config.close()
+    config_file = _find_config(args.config)
+    if config_file:
+        config.read(config_file)
+    else:
+        LOGGER.error("No config file could be located")
+        sys.exit(1)
 
     _init_logging(config)
 
@@ -168,7 +208,21 @@ def zonebot_alert_main():
     parser.add_argument('event_dir',
                         help='The directory in which the event files are stored')
 
+    parser.add_argument('-c', '--config',
+                        metavar='file',
+                        required=False,
+                        help='Load the specified config file')
+
     args = parser.parse_args()
+
+    # Create the configuration from the arguments
+    config = ConfigParser()
+    config_file = _find_config(args.config)
+    if config_file:
+        config.read(config_file)
+    else:
+        LOGGER.error("No config file could be located")
+        sys.exit(1)
 
     elements = __splitall(args.event_dir)
 

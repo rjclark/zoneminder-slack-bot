@@ -43,3 +43,43 @@ def test_example_config_valid():
     config.read(example_config)
 
 
+def test_no_config_file():
+    try:
+        zonebot._find_config(None)
+        assert "No config available should have triggered an exception"
+    except ValueError:
+        #  exported
+        pass
+
+
+def test_command_line_config_file():
+    example_config = os.path.join(os.path.dirname(__file__), "..", "docs", "zonebot-example-config.cfg")
+
+    assert os.path.isfile(example_config)
+
+    location = zonebot._find_config(example_config)
+
+    assert_equal(example_config, location)
+
+
+def test_user_config_located():
+    user_dir = os.path.join(os.path.expanduser("~"), '.config', 'zonebot')
+
+    if not os.path.isdir(user_dir):
+        os.makedirs(user_dir)
+
+    user_file = os.path.join(os.path.expanduser("~"), '.config', 'zonebot', 'zonebot.conf')
+
+    try:
+        handle = open(user_file, 'w')
+        handle.write('Some text')
+        handle.close()
+
+        assert os.path.isfile(user_file)
+
+        location = zonebot._find_config(None)
+
+        assert_equal(user_file, location)
+    finally:
+        if os.path.isfile(user_file):
+            os.remove(user_file)
