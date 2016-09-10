@@ -14,4 +14,4 @@
 #   limitations under the License.
 #
 
-from zoneminder import ZoneMinder
+from .zoneminder import ZoneMinder
