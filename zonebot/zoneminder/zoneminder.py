@@ -18,10 +18,10 @@
 Class(es) to connect to and interact with a [ZoneMinder](https://www.zoneminder.com/) install.
 """
 
-import requests
 import json
 import logging
-from io import BytesIO
+
+import requests
 
 LOGGER = logging.getLogger("zoneminder")
 
@@ -143,38 +143,18 @@ class ZoneMinder(object):
                   }
 
         score = 0
+
         key_frame = None
+        key_frame_id = None
 
         for frame in data['event']['Frame']:
             if int(frame['Score']) > score:
                 key_frame = frame['Id']
+                key_frame_id = frame['FrameId']
                 score = int(frame['Score'])
 
         result['key_frame'] = key_frame
+        if key_frame_id:
+            result['image_filename'] = key_frame_id.zfill(5) + '-capture.jpg'
 
         return result
-
-    def load_image(self, key_frame):
-        """
-        Loads the image with the specified ID into memory.
-
-        :param key_frame: The index of the image that is to be loaded (e.g "12345").
-        :type key_frame: str
-        :return: The in-memory representation of the image.
-        :rtype: io.BytesIO
-        """
-
-        # Load key frame image from http://<site>/zm/index.php?view=image&fid=<frame id>
-        url = "{0}/index.php".format(self.url)
-
-        LOGGER.debug("Loading image ID %s from %s", key_frame, url)
-
-        params = {
-            "view": "image",
-            "fid": key_frame
-        }
-
-        image_request = self.session.get(url, params=params)
-        image = BytesIO(image_request.content)
-
-        return image

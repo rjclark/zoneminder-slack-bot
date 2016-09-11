@@ -21,13 +21,15 @@
 A Slack bot that can communicate and interact with a ZoneMinder security system.
 """
 
-import sys
-import os
-import logging
 import argparse
+import logging
+import os
+import sys
+
 from configparser import ConfigParser
-from .zoneminder import ZoneMinder
 from slackclient import SlackClient
+
+from .zoneminder import ZoneMinder
 
 __version__ = '1.0'
 __author__ = 'Robert Clark <clark@exiter.com>'
@@ -140,7 +142,7 @@ def _validate_config(config):
     # These are all the sections and options we require. If any are missing,
     # the bot will not start up.
     required = {
-        "Slack": ["api_token", "bot_id"],
+        "Slack": ["api_token", "bot_id", "channels"],
         "ZoneMinder": ["url", "username", "password"]
     }
 
@@ -156,8 +158,16 @@ def _validate_config(config):
                     LOGGER.error("Required option %s missing from section [%s]", option, section)
                     result = False
 
+    if result:
+        while config['ZoneMinder']['url'].endswith("/"):
+            # We need the URL in a consistent format as some of the API calls
+            # fail if there are too many slashes. I decided on no trailing slash
+            #  as the default format
+            config['ZoneMinder']['url'] = config['ZoneMinder']['url'][:-1]
+
     # Finally
     return result
+
 
 def zonebot_getid_main():
     """
@@ -296,7 +306,46 @@ def zonebot_alert_main():
     data = zone_minder.load_event(monitor, timestamp)
     data = zone_minder.parse_event(data)
 
-    # see if we have a message to load
-    if 'key_frame' in data:
-        data['image'] = zone_minder.load_image(data['key_frame'])
+    if 'image_filename' not in data:
+        LOGGER.error("Could not which still frame to upload")
 
+    image_filename = os.path.join(args.event_dir, data['image_filename'])
+    if not os.path.isfile(image_filename):
+        LOGGER.error("Expect image still file %s could not be read", image_filename)
+
+    comment = 'Detected {0} on monitor {1}. {2}/index.php?view=event&eid={3}'.format(
+        data['cause'],
+        data['source'],
+        config['ZoneMinder']['url'],
+        data['id']
+    )
+
+    filename = '{0}_Event_{1}.jpeg'.format(data['source'], data['id'])
+
+    # And off it goes ...
+    slack = SlackClient(config['Slack']['api_token'])
+
+    result = slack.api_call('files.upload',
+                            initial_comment=comment,
+                            filename=filename,
+                            channels=config['Slack']['channels'],
+                            # Note: this is broken in slackclient 1.0.1 and earlier
+                            file=open(image_filename, 'rb')
+                            )
+
+    if not result:
+        LOGGER.error("Could not complete Slack API call")
+        sys.exit(1)
+
+    if not result['ok']:
+        error = "Error: "
+        if 'error' in result:
+            error = result['error']
+        elif 'warning' in result:
+            error = result['warning']
+
+        LOGGER.error("Could not upload image: %s", error)
+        sys.exit(1)
+
+    LOGGER.info('Image posted to %s as %s', config['Slack']['channels'], result['permalink_public'])
+    sys.exit(0)

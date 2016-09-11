@@ -42,6 +42,26 @@ def test_example_config_valid():
     config = ConfigParser()
     config.read(example_config)
 
+    assert zonebot._validate_config(config)
+
+
+def test_url_fixes():
+   example_config = os.path.join(os.path.dirname(__file__), "..", "docs", "zonebot-example-config.cfg")
+   config = ConfigParser()
+   config.read(example_config)
+
+   config['ZoneMinder']['url'] = 'https://sample/zm///////'
+   assert zonebot._validate_config(config)
+   assert config['ZoneMinder']['url'] == 'https://sample/zm'
+
+   config['ZoneMinder']['url'] = 'https://sample/zm/'
+   assert zonebot._validate_config(config)
+   assert config['ZoneMinder']['url'] == 'https://sample/zm'
+
+   config['ZoneMinder']['url'] = 'https://sample/zm'
+   assert zonebot._validate_config(config)
+   assert config['ZoneMinder']['url'] == 'https://sample/zm'
+
 
 def test_no_config_file():
     try:
