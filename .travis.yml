@@ -1,20 +1,32 @@
 language: python
 sudo: false
 cache: pip
+
 notifications:
   email: false
   slack:
     secure: HSe1ZbnLyXTfCbSp4KWM6gwWJbSjUFIyp86ULOsQYXyxEZltxQRXhx9BENTVjkGBdM0oddH0g6vAtOoBVY1ejdBxdB7XNKLZ8UJzBc7eS//LFcCWTaRfdglJxypY5tcMampLZMXXVVgvANVcFvKg5ng7ymVsS+NMyUBrIyIJfdumZryjPY8TvH3gbDAybhQ6efwEhrXcMHddaFvPAXJbeh9+L9OmrU5HeVcs+YuRhgxoHX2V8IC3EkxsAg4Bk7uX8yV0gugbtcYoedV+HBGNv7ljFff8P73CEChMQDFbzDaSlsGrT/3aB+XMrAdpxfrSXXe9/77jIvxH7unmit2BR7/ozLe8xYC2aCL9UThOtumn/o/2YqJlWe9PpdUg0b/tjeyb1dydB0oly1I8xRcfAZOfPfoM+6DHEx4+aswuqLxgU7I1Rq2/Q+QAjEhUUQeB1s+/dIY2YXjiamtvSz/mQNCFPCFfFw67+XQ7k1uy0e4HG80VzXGx9TtzwOIwzSegv3WYZqWNFY2QXKrImWEjWJjrYYJmeX5mFAHcmsqZL87AB+6IeGXsXPLczRedZUY9Bl6iT0uhgmF4nKa3lbMNievpzquhH2W4snv+hht6hj5Tidg02jkWAGjJsn+0441VO4WEv88vwOGATZBCCPC9utoiFAr/biwD5YkOG1qLKh0=
+
 python:
-- '2.6'
-- '2.7'
-- '3.3'
-- '3.4'
-- '3.5'
+  - '2.6'
+  - '2.7'
+  - '3.3'
+  - '3.4'
+  - '3.5'
 install:
-- travis_retry pip install -r requirements.txt
+  - travis_retry pip install -r requirements.txt
 script:
-- if [[ "${TRAVIS_PYTHON_VERSION}" != 3.2 ]]; then CMD="coverage run"; else CMD="python";
-  fi; PYTHONPATH=. $CMD -m nose2.__main__ -v
+  - if [[ "${TRAVIS_PYTHON_VERSION}" != 3.2 ]]; then CMD="coverage run"; else CMD="python";
+    fi; PYTHONPATH=. $CMD -m nose2.__main__ -v
 after_success:
-- coveralls
+  - coveralls
+
+deploy:
+  provider: pypi
+  user: rjclark
+  password:
+    secure: Ydm69PPpENGC1vVUHhLuhNSV9fJlaLI3yi0mxtNKZrLU2laTYdlXq8DKNMnaRkWIrk0w4X2KJEIiVRvkURxUi8nGwljAPuZzq0eXPFMLNkU1gMIUhgvvgnDkrN1NmacC1gvN/nL1oHzdX/N9dxdeZWLPBdGmkEpPU6yKNzhLFoyXqkgwXC2Pa/bVPYwdx2ocbv2l3idZfaB/KnVNSmR3Hsu5NajzTncNjk+dKLh2Cl3dZ+JEhmTxLBv5SBZwMkuqLtOiHdVZ21ahAoqrwWGw61XWMMasZvwEjrukgHbs5IO7iEj21NCVmlvDDN+zIrZPI/QY9BNhnJMjXBuE2Cz97LMQEwoKZ5dKp2V+ADTZMUf87HZJguDSeYhNM36yGCwWWGmXspg/gs2YlL0TtcjQBfbiboZ/rKDyO6TudwrRGaG36rrDRMZr+5iCwvAdX7wHaIvYXRbAvOyoSMWVW+guGszhR62oZ2+ydVau2n9fynEvn4hLGgdugDMEibtk+XjQG35tzjW+/KakWl4g+dptiAqCywyiDiR7SaHki1NzO7fvFs6LHNkJ5/DER4G6zTvcwHXDSgZ4P73bNib6lqVAoXSsUe/fTWUyvPt0y9zdPUSpK5EOV+O/aiQZYUyQIcwNXasPGCVxSXFeXoEgNQrhwpDIhNmPfFd/CjxFdyf6fT8=
+  on:
+    tags: true
+    distributions: sdist bdist_wheel
+    repo: rjclark/zoneminder-slack-bot

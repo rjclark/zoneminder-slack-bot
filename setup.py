@@ -23,8 +23,9 @@ setup(
     author='Robert Clark',
     author_email='clark@exiter.com',
 
-    url='https://github.com/nogudnik/zoneminder-slack-bot',  # use the URL to the github repo
+    url='https://github.com/rjclark/zoneminder-slack-bot',  # use the URL to the github repo
     license='Apache',
+    platforms=['any'],
 
     keywords=['slack', 'zoneminder'],  # arbitrary keywords
 
@@ -62,6 +63,8 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+
+        'Operating System :: OS Independent',
 
         "Topic :: Communications :: Chat",
     ],

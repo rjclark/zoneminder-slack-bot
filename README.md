@@ -31,16 +31,17 @@ you exactly where) that you can run.
 
 You can download the source from GitHub and build it yourself if you would like.
 
-1. Download the release you want from https://github.com/nogudnik/zoneminder-slack-bot/releases
+1. Download the release you want from https://github.com/rjclark/zoneminder-slack-bot/releases
 1. Extract it
 1. Run `python setup.py build install`
 
 ### Clone the source and build
 
 You can also clone the source from GitHub if you would like to build the very latest
-version. **This is not guaranteed to work**. The unrelease source code from GitHub could be in the middle of development and running it directly is not recommended.
+version. **This is not guaranteed to work**. The unreleased source code from GitHub could be in
+the middle of development and running it directly is not recommended.
 
-1. Clone this repository https://github.com/nogudnik/zoneminder-slack-bot
+1. Clone this repository https://github.com/rjclark/zoneminder-slack-bot
 1. Run `python setup.py build install`
 
 Configuration
@@ -54,7 +55,7 @@ your [Slack API token](https://api.slack.com/tokens) and the
 The example configuration file is installed into the Python package directory on
 your system, which can be somewhat difficult to find. The latest version of the
 file is always available from
-[the GitHub repossitory](https://github.com/nogudnik/zoneminder-slack-bot/blob/master/docs/zonebot-example-config.cfg)
+[the GitHub repossitory](https://github.com/rjclark/zoneminder-slack-bot/blob/master/docs/zonebot-example-config.cfg)
 if needed.
 
 To configure the bot, you will need several pieces of information
@@ -77,7 +78,9 @@ Building and Contributing
 Instructions for building the ZoneMinder Slack bot are in the `docs/BUILDING.md`
 file.
 
-[![Build Status](https://travis-ci.org/nogudnik/zoneminder-slack-bot.svg?branch=master)](https://travis-ci.org/nogudnik/zoneminder-slack-bot) [![Coverage Status](https://coveralls.io/repos/github/nogudnik/zoneminder-slack-bot/badge.svg?branch=master)](https://coveralls.io/github/nogudnik/zoneminder-slack-bot?branch=master)
+[![Build Status](https://travis-ci.org/rjclark/zoneminder-slack-bot.svg?branch=master)](https://travis-ci.org/rjclark/zoneminder-slack-bot)
+[![Coverage Status](https://coveralls.io/repos/github/rjclark/zoneminder-slack-bot/badge.svg?branch=master)](https://coveralls.io/github/rjclark/zoneminder-slack-bot?branch=master)
+[![PyPI version](https://badge.fury.io/py/zonebot.svg)](https://pypi.python.org/pypi/zonebot)
 
 If you wish to contribute, pull requests against the
-[GitHub repository](https://github.com/nogudnik/zoneminder-slack-bot) are welcomed.
+[GitHub repository](https://github.com/rjclark/zoneminder-slack-bot) are welcomed.
