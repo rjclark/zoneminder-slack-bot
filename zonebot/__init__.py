@@ -27,6 +27,7 @@ import logging
 import argparse
 from configparser import ConfigParser
 from .zoneminder import ZoneMinder
+from slackclient import SlackClient
 
 __version__ = '1.0'
 __author__ = 'Robert Clark <clark@exiter.com>'
@@ -157,6 +158,44 @@ def _validate_config(config):
 
     # Finally
     return result
+
+def zonebot_getid_main():
+    """
+    Main method for the util script that figures out the bot ID
+    """
+
+    #  Set up the command line arguments we support
+    parser = argparse.ArgumentParser(description='Find the ID for a Slack bot user',
+                                     epilog="Version " + __version__ + " (c) " + __author__)
+
+    parser.add_argument('-a', '--apitoken',
+                        metavar='key',
+                        required=True,
+                        help='Slack API token')
+
+    parser.add_argument('-b', '--botname',
+                        metavar='name',
+                        required=True,
+                        help='Name of the Slack bot user to search for')
+
+    args = parser.parse_args()
+
+    slack_client = SlackClient(args.apitoken)
+    api_call = slack_client.api_call("users.list")
+
+    if api_call.get('ok'):
+        # retrieve all users so we can find our bot
+        users = api_call.get('members')
+        for user in users:
+            if 'name' in user and user.get('name').lower() == args.botname.lower():
+                print("User ID for bot '{0}' is {1}".format(user['name'], user.get('id')))
+                sys.exit(0)
+    else:
+        print("Slack API call failed (invalid API token?")
+
+    # Not found
+    print("Could not find bot user with the name {0}".format(args.botname))
+    sys.exit(1)
 
 
 def zonebot_main():

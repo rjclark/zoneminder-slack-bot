@@ -38,7 +38,7 @@ You can download the source from GitHub and build it yourself if you would like.
 ### Clone the source and build
 
 You can also clone the source from GitHub if you would like to build the very latest
-version. **This is not guaranteed to work**.
+version. **This is not guaranteed to work**. The unrelease source code from GitHub could be in the middle of development and running it directly is not recommended.
 
 1. Clone this repository https://github.com/nogudnik/zoneminder-slack-bot
 1. Run `python setup.py build install`
@@ -46,12 +46,12 @@ version. **This is not guaranteed to work**.
 Configuration
 -------------
 
-Also installed is a sample configuiration file called `zonebot-example-config.cfg`.
+Also installed is a sample configuration file called `zonebot-example-config.cfg`.
 You can copy this to your preferred location for config files and edit it to put in
 your [Slack API token](https://api.slack.com/tokens) and the
 [ID of your bot user](https://api.slack.com/bot-users)
 
-The example configuration file is installed into the Pyth package directoy on
+The example configuration file is installed into the Python package directory on
 your system, which can be somewhat difficult to find. The latest version of the
 file is always available from
 [the GitHub repossitory](https://github.com/nogudnik/zoneminder-slack-bot/blob/master/docs/zonebot-example-config.cfg)
@@ -64,9 +64,12 @@ To configure the bot, you will need several pieces of information
        a new bot user. You will have a chance to get the API token here
     2. Going to the page for your [existing bot user](https://my.slack.com/apps/manage/custom-integrations).
 2. The User ID of your bot user. This can be found by:
-    1. Setting the `SLACK_BOT_TOKEN` environment variable to your API token
-    2. Running the script `get_bit_id.py` distributed with this package or
-       [from the GitHub repository(https://github.com/nogudnik/zoneminder-slack-bot/blob/master/utils/get_bot_id.py)
+    1. Running the script `zonebot-getid` distributed with this package and providing
+       the name of the Slack bot user and you Slack API token as command line options.
+       For example:
+
+    zonebot-getid  -a "your-slack-token" -b zoneminder 
+    User ID for bot 'zoneminder' is AA22BB44C
 
 Building and Contributing
 -------------------------

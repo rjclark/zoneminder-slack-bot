@@ -84,6 +84,7 @@ setup(
         'console_scripts': [
             'zonebot=zonebot:zonebot_main',
             'zonebot-alert=zonebot:zonebot_alert_main',
+            'zonebot-getid=zonebot:zonebot_getid_main',
         ],
     },
 )
