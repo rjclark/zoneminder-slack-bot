@@ -18,6 +18,7 @@ import os
 from nose.tools import assert_equal
 import zonebot
 import logging
+import json
 
 from configparser import ConfigParser
 
@@ -103,3 +104,4 @@ def test_user_config_located():
     finally:
         if os.path.isfile(user_file):
             os.remove(user_file)
+

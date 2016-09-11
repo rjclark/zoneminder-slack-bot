@@ -2,3 +2,4 @@ include README.md
 include LICENSE
 include docs/BUILDING.md
 include docs/zonebot-example-config.cfg
+include requirements.txt

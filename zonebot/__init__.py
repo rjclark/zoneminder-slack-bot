@@ -30,6 +30,7 @@ from configparser import ConfigParser
 from slackclient import SlackClient
 
 from .zoneminder import ZoneMinder
+from .bot import ZoneBot
 
 __version__ = '1.0'
 __author__ = 'Robert Clark <clark@exiter.com>'
@@ -165,6 +166,11 @@ def _validate_config(config):
             #  as the default format
             config['ZoneMinder']['url'] = config['ZoneMinder']['url'][:-1]
 
+        if not config.has_section('Runtime'):
+            config.add_section('Runtime')
+        if not config.has_option('Runtime', 'daemon'):
+            config['Runtime']['daemon'] = 'false'
+
     # Finally
     return result
 
@@ -213,6 +219,9 @@ def zonebot_main():
     Main method for the zonebot script
     """
 
+    # basic setup
+    _init_logging(None)
+
     #  Set up the command line arguments we support
     parser = argparse.ArgumentParser(description='A Slack bot to interact with ZoneMinder',
                                      epilog="Version " + __version__ + " (c) " + __author__)
@@ -233,21 +242,28 @@ def zonebot_main():
         LOGGER.error("No config file could be located")
         sys.exit(1)
 
+    if not _validate_config(config):
+        sys.exit(1)
+
+    LOGGER.debug("Configuration is valid")
+
+    # Reconfigure logging with config values
     _init_logging(config)
 
     LOGGER.info("Starting up")
     LOGGER.info("Version %s", __version__)
 
-    if not _validate_config(config):
-        sys.exit(1)
-
-    LOGGER.info("Configuration is valid")
+    bot_process = ZoneBot(config)
+    bot_process.start()
 
 
 def zonebot_alert_main():
     """
     Main method for the zonebot-alert script
     """
+
+    # basic setup
+    _init_logging(None)
 
     #  Set up the command line arguments we support
     parser = argparse.ArgumentParser(
@@ -273,10 +289,11 @@ def zonebot_alert_main():
         LOGGER.error("No config file could be located")
         sys.exit(1)
 
-    _init_logging(config)
-
     if not _validate_config(config):
         sys.exit(1)
+
+    # Reconfigure logging with config values
+    _init_logging(config)
 
     elements = __splitall(args.event_dir)
 
