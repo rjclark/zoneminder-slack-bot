@@ -20,9 +20,11 @@
 The main BOT class.
 """
 
-import time
 import logging
-import json
+import re
+import time
+from . import ZoneMinder
+
 from slackclient import SlackClient
 
 LOGGER = logging.getLogger("zonebot")
@@ -33,32 +35,67 @@ class ZoneBot(object):
     A smart bot that interacts with Slack via chat commands.
     """
 
+    dispatch_map = dict(
+        unknown=dict(
+            function='unknown_command',
+            name='unknown',
+            permissions='any'
+        ),
+        help=dict(
+            function='list_commands',
+            name='help',
+            permissions='any'
+        ),
+        denied=dict(
+            function="command_denied",
+            name='denied',
+            permissions='any',
+        ),
+        commands=dict(
+            function='list_commands',
+            name='commands',
+            help='List available commands',
+            permissions='any'
+        ),
+        enable=dict(
+            function='enable_monitor',
+            name='enable',
+            help='Enables alarms on the named monitor (by name, not monitor ID)',
+            permissions='write'
+        ),
+        disable=dict(
+            function='disable_monitor',
+            name='disable',
+            help='Disables alarms on the named monitor (by name, not monitor ID)',
+            permissions='write'
+        )
+    )
+
     def __init__(self, config):
         self.config = config
 
         # Initialize class state
         self.last_ping = 0
-        self.bot_plugins = []
         self.slack_client = SlackClient(config['Slack']['api_token'])
 
         self.AT_BOT = "<@" + config['Slack']['bot_id'] + ">"
+        self.BOT_NAME = config['Slack']['bot_name'] or "zonebot"
+
+        self._usermap = {}
 
     def start(self):
         """
-        If configured, converts to a daemon.
-
-        :param config: The configuration data
+        If configured, converts to a daemon. Otherwise start connected to the current console.
         """
 
-        run_as_daemon = False
-
-        if self.config.has_section('Runtime') and self.config.has_option('Runtime', 'daemon'):
-            run_as_daemon = self.config.getboolean('Runtime', 'daemon')
+        run_as_daemon = self.config.getboolean('Runtime', 'daemon', fallback=False)
+        uid = self.config.get('Runtime', 'uid', fallback=None)
+        gid = self.config.get('Runtime', 'gid', fallback=None)
 
         if run_as_daemon:
             LOGGER.info('Start as a daemon process')
             import daemon
-            with daemon.DaemonContext():
+            with daemon.DaemonContext(uid=uid, gid=gid):
                 self._start()
 
         self._start()
@@ -67,6 +104,9 @@ class ZoneBot(object):
         """
         Starts the bot by connecting to Slack.
         """
+        self.zoneminder = ZoneMinder(self.config.get('ZoneMinder', 'url'))
+        self.zoneminder.login(self.config.get('ZoneMinder', 'username'),
+                              self.config.get('ZoneMinder', 'password'))
 
         self.connect()
 
@@ -124,7 +164,7 @@ class ZoneBot(object):
         # No match ...
         return None, None, None
 
-    def handle_command(self, user, command, channel):
+    def handle_command(self, user, command_string, channel):
         """
         Receives commands directed at the bot and determines if they
         are valid commands. If so, then acts on the commands. If not,
@@ -132,21 +172,37 @@ class ZoneBot(object):
 
         :param user: user ID that issued the command
         :type user: str
-        :param command: The command the user entered
-        :type command: str
+        :param command_string: The command the user entered
+        :type command_string: str
         :param channel: The channel the user sent the command in
         :type channel: str
         """
 
-        LOGGER.info("Received command %s in channel %s from %s", command, channel, user)
+        LOGGER.info("Received command '%s' in channel %s from %s (%s)",
+                    command_string,
+                    channel,
+                    user,
+                    'name not cached' if user not in self._usermap else self._usermap[user])
 
-        EXAMPLE_COMMAND = "do"
+        if not command_string:
+            command = 'help'
+            words = ['help']
+        else:
+            words = re.split('\W+', command_string)
+            if len(words) == 0:
+                command = 'unknown'
+            else:
+                command = words[0].lower()
 
-        response = "Not sure what you mean. Use the *" + EXAMPLE_COMMAND + \
-                   "* command with numbers, delimited by spaces."
+        if not command or command not in self.dispatch_map:
+            command = 'unknown'
 
-        if command.startswith(EXAMPLE_COMMAND):
-            response = "Sure...write some more code then I can do that!"
+        if not self._has_permission(user, command):
+            command = 'denied'
+
+        # pass of the command the the correct dispatch function
+        function = self.dispatch_map[command]['function']
+        response = getattr(self, function)(words, user)
 
         result = self.slack_client.api_call("chat.postMessage",
                                             channel=channel,
@@ -161,3 +217,132 @@ class ZoneBot(object):
                 error = result['warning']
 
             LOGGER.error("Could not respond to the command: %s", error)
+
+    def unknown_command(self, words, user):
+        """
+        Triggered for unknown commands.
+        """
+
+        return 'Unknown command {}. Use "@{} commands" to list available commands' \
+            .format('' if len(words[0]) == 0 else words[0],
+                    self.BOT_NAME)
+
+    def command_denied(self, words, user):
+        return "User does not have permission to execute the {} command".format(words[1])
+
+    def list_commands(self, words, user):
+        """
+        Returns the commands allow for this bot (and user?)
+        """
+
+        result = 'Available commands:\n'
+
+        for c in self.dispatch_map:
+            if c in ['help', 'unknown', 'denied']:
+                continue
+            elif not self._has_permission(user, c):
+                continue
+
+            result += ' _{}_: {}\n'.format(self.dispatch_map[c]['name'], self.dispatch_map[c]['help'])
+
+        return result
+
+    def enable_monitor(self, words, user):
+        """
+        Enables alarms on the named monitor.
+        """
+
+        return self.__toggle_monitor(True, words, user)
+
+    def disable_monitor(self, words, user):
+        """
+        Disables alarms on the named monitor.
+        """
+
+        return self.__toggle_monitor(False, words, user)
+
+    def __toggle_monitor(self, on, words, user):
+        """
+        Toggles the active alarm state for the named monitor
+        """
+
+        if not words or len(words) < 2:
+            return '*Error* the name of the monitor is required'
+
+        return 'Monitor {} {}'.format(words[1], 'enabled' if on else 'disabled')
+
+    def _has_permission(self, user_id, command):
+        """
+        Checks to see if the user has the required permissions to execute the provided
+        command.
+        :param user_id: Slack user ID of the user (e.g. 'U1234567890')
+        :param command: The command to be checked
+        :return: True if the user is allow the execute the command and false if they are not.
+        :rtype: bool
+        """
+
+        if command not in self.dispatch_map:
+            return False
+
+        command_data = self.dispatch_map[command]
+
+        if command_data['permissions'] == 'any':
+            return True
+
+        permission_required = command_data['permissions']
+
+        # Now things get complicated.
+
+        # First check to see if any permissions are defined. If they are not, then
+        # anyone can do anything.
+        if not self.config.has_section('Permissions'):
+            LOGGER.info("No config section")
+            return True
+
+        # Well then. Let's turn the ID into a user name and see what their permissions are.
+        # Results are cached so check the cache first
+
+        user_name = None
+        if user_id in self._usermap:
+            user_name = self._usermap[user_id]
+
+        if not user_name:
+            LOGGER.info("Doing Slack lookup for user ID %s", user_id)
+            result = self.slack_client.api_call("users.info",
+                                                user=user_id,
+                                                as_user=True)
+
+            if not result['ok']:
+                LOGGER.error("Could not convert %s to a user name: %s", user_id, result['error'])
+                return False
+
+            user_name = result['user']['name'].lower()
+            self._usermap[user_id] = user_name
+
+        if not user_name:
+            LOGGER.error('Could not resolve user ID %s', user_id)
+            return False
+
+        # Not listed in the permissions section, they only have read access
+        access = self.config.get('Permissions', user_name.lower(), fallback='read')
+        access = access.split(' ')
+
+        # They have specific permissions listed. See if this command is one of them
+
+        if 'any' in access:
+            # they are allowed to do anything
+            return True
+        if permission_required in access:
+            # check by type
+            return True
+        elif command in access:
+            # check by specific command
+            return True
+
+        # No match, not allowed
+        LOGGER.info("User ID %s maps to %s and has access %s. They are not allowed the %s command",
+                    user_id,
+                    user_name,
+                    access,
+                    command)
+        return False

@@ -33,7 +33,7 @@ class ZoneMinder(object):
     A session is created as soon as this class is, and a login is attempted immediately.
     """
 
-    def __init__(self, url, username, password):
+    def __init__(self, url):
         """
         Creates a new class to interact with Zoneminder. Each class is a separate session.
         The user name and password are not stored. Instead we log into the Zoneminder
@@ -41,13 +41,7 @@ class ZoneMinder(object):
 
         :param url: The URL of the Zoneminder installation.
         :type url: str
-        :param username: The user name to use when connecting
-        :type username: str
-        :param password: The password to use when connecting
-        :type password: str
         """
-
-        self.session = requests.Session()
 
         while url.endswith("/"):
             # We need the URL in a consistent format as some of the API calls
@@ -57,6 +51,20 @@ class ZoneMinder(object):
 
         self.url = url
         LOGGER.debug("Base url is %s" % self.url)
+
+        # Filled in when we login()
+        self.session = None
+
+    def login(self, username, password):
+        """
+        Creates a new session by logging into the ZoneMinder system
+        :param username: The user name to use when connecting
+        :type username: str
+        :param password: The password to use when connecting
+        :type password: str
+        """
+
+        self.session = requests.Session()
 
         params = {
             "username": username,

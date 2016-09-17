@@ -22,7 +22,9 @@ IP and using the security provided by the Slack environment.
 The easiest method of installation is via `pip` as the package is available
 from the [Python Package Index](https://pypi.python.org/pypi)
 
-    pip install zonebot
+```
+pip install zonebot
+```    
 
 This will create a script called `zonebot` in your path ("`which zonebot`" will tell
 you exactly where) that you can run.
@@ -55,7 +57,7 @@ your [Slack API token](https://api.slack.com/tokens) and the
 The example configuration file is installed into the Python package directory on
 your system, which can be somewhat difficult to find. The latest version of the
 file is always available from
-[the GitHub repossitory](https://github.com/rjclark/zoneminder-slack-bot/blob/master/docs/zonebot-example-config.cfg)
+[the GitHub repository](https://github.com/rjclark/zoneminder-slack-bot/blob/master/docs/zonebot-example-config.cfg)
 if needed.
 
 To configure the bot, you will need several pieces of information
@@ -69,8 +71,23 @@ To configure the bot, you will need several pieces of information
        the name of the Slack bot user and you Slack API token as command line options.
        For example:
 
-    zonebot-getid  -a "your-slack-token" -b zoneminder 
-    User ID for bot 'zoneminder' is AA22BB44C
+```
+        zonebot-getid  -a "your-slack-token" -b zoneminder
+        User ID for bot 'zoneminder' is AA22BB44C
+```
+
+Once you have those, make a copy of the config file and add the Slack API token and user ID of the bot, You will also want to edit the `Permissions` section.
+
+**NOTE**: The default config file allows only read permission to the ZoneMinder system.
+
+The default config file can be placed in any of these locations (checked in this order)
+
+* Any file specified by the `-c/--config` command line option
+* `$XDG_CONFIG_HOME/zonebot/zonebot.conf` if the `XDG_CONFIG_HOME` environment variable is defined
+* `${DIR}/zonebot/zonebot.conf` for any directory in the `XDG_CONFIG_DIRS` environment variable
+* `~/.config/zonebot/zonebot.conf`
+* `/etc/zonebot/zonebot.conf`
+* `/etc/default/zonebot`
 
 Building and Contributing
 -------------------------

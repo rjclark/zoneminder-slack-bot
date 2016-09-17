@@ -30,6 +30,17 @@ setup(
     keywords=['slack', 'zoneminder'],  # arbitrary keywords
 
     description='A Slack bot to interact with ZoneMinder',
+    long_description='''This is a Slack Bot that monitors one or more Slack channels for commands and
+interacts with a ZoneMinder system to report events and obtain information.
+
+The primary use for this bot is to allow access to some parts of a ZoneMinder
+system that is behind a firewall, without having to expose the actual system to
+the Internet. Making a ZoneMinder system available to the Internet has several
+requirements (static IP, secure system) that may not be feasible for all users.
+
+By providing a bot that can interact with both ZoneMinder and Slack, remote access to
+and notification from ZoneMinder is possible, without needing a static IP and using
+the security provided by the Slack environment.''',
 
     packages=[
         'zonebot',  # this must be the same as the name above

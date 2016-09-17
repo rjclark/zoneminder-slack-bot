@@ -12,7 +12,7 @@ requirements and steps necessary, but it assumes a basica familiarity with the
 tools and environment that the linked article covers in some depth.
 
 This list of tools from the [First Slack Bot](https://www.fullstackpython.com/blog/build-first-slack-bot-python.html) blog is all that is needed
-to buil this bot.
+to build this bot.
 
 > * Either [Python 2 or 3](https://wiki.python.org/moin/Python2orPython3)
 > * [pip](https://pip.pypa.io/en/stable/) and [virtualenv](https://virtualenv.pypa.io/> en/stable/) to handle Python application dependencies

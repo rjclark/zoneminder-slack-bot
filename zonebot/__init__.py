@@ -166,11 +166,6 @@ def _validate_config(config):
             #  as the default format
             config['ZoneMinder']['url'] = config['ZoneMinder']['url'][:-1]
 
-        if not config.has_section('Runtime'):
-            config.add_section('Runtime')
-        if not config.has_option('Runtime', 'daemon'):
-            config['Runtime']['daemon'] = 'false'
-
     # Finally
     return result
 
@@ -316,9 +311,9 @@ def zonebot_alert_main():
 
     LOGGER.info("Sending alert about event at %s on monitor %s", timestamp, monitor)
 
-    zone_minder = ZoneMinder(config.get('ZoneMinder', 'url'),
-                             config.get('ZoneMinder', 'username'),
-                             config.get('ZoneMinder', 'password'))
+    zone_minder = ZoneMinder(config.get('ZoneMinder', 'url'))
+    zone_minder.login(config.get('ZoneMinder', 'username'),
+                      config.get('ZoneMinder', 'password'))
 
     data = zone_minder.load_event(monitor, timestamp)
     data = zone_minder.parse_event(data)
