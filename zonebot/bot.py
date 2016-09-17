@@ -23,9 +23,10 @@ The main BOT class.
 import logging
 import re
 import time
-from . import ZoneMinder
+import sys
 
 from slackclient import SlackClient
+from zonebot.zoneminder import *
 
 LOGGER = logging.getLogger("zonebot")
 
@@ -269,7 +270,10 @@ class ZoneBot(object):
         if not words or len(words) < 2:
             return '*Error* the name of the monitor is required'
 
-        return 'Monitor {} {}'.format(words[1], 'enabled' if on else 'disabled')
+        all_monitors = self.zoneminder.get_monitors()
+        msg = all_monitors.set_state(words[1], on)
+
+        return 'Monitor {} state: {}'.format(words[1], msg)
 
     def _has_permission(self, user_id, command):
         """

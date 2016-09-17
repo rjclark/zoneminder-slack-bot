@@ -29,8 +29,8 @@ import sys
 from configparser import ConfigParser
 from slackclient import SlackClient
 
-from .zoneminder import ZoneMinder
-from .bot import ZoneBot
+from zonebot.zoneminder.zoneminder import ZoneMinder
+from zonebot.bot import ZoneBot
 
 __version__ = '1.0'
 __author__ = 'Robert Clark <clark@exiter.com>'

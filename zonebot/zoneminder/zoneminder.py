@@ -22,6 +22,7 @@ import json
 import logging
 
 import requests
+from zonebot.zoneminder.monitors import Monitors
 
 LOGGER = logging.getLogger("zoneminder")
 
@@ -30,7 +31,7 @@ class ZoneMinder(object):
     """
     Connect to an interact with a [ZoneMinder](https://www.zoneminder.com/) install.
 
-    A session is created as soon as this class is, and a login is attempted immediately.
+    The associated HTTP session, and all actions, are not available until `login` is called.
     """
 
     def __init__(self, url):
@@ -54,6 +55,7 @@ class ZoneMinder(object):
 
         # Filled in when we login()
         self.session = None
+        self.monitors = None
 
     def login(self, username, password):
         """
@@ -81,6 +83,18 @@ class ZoneMinder(object):
         if login_request.status_code != 200:
             raise Exception("Could not log into %s response code %d" %
                             (self.url, login_request.status_code))
+
+        # extra classes for the various components of ZoneMinder
+        self.monitors = Monitors(self.session, self.url)
+
+    def get_monitors(self):
+        """
+        Obtains the list of monitors connected to ZoneMinder. You must call `login` first.
+
+        :return: the list of monitors currently connected.
+        """
+
+        return self.monitors
 
     def load_event(self, monitor, timestamp):
         """
