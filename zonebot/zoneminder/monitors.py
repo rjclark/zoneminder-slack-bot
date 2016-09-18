@@ -109,8 +109,7 @@ class Monitors(object):
 
         result = self.session.post(url=url, data=params)
         if result.status_code != 200:
-            raise Exception("Could not toggle monitor state. " +
-                            "Response code " + str(result.status_code))
+            return "not changed. Response code " + str(result.status_code)
 
         result = json.loads(result.text)
         if result['message'] != 'Saved':

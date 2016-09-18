@@ -283,14 +283,33 @@ class ListMonitors(Command):
 class ToggleMonitor(Command):
     def __init__(self, config=None):
         super(ToggleMonitor, self).__init__(config=config)
+        self.result = None
 
     def perform(self, user_name, commands, zoneminder):
-        pass
+        if len(commands) < 3:
+            self.result = '*Error*: the name of the monitor is required. ' \
+                          '_\'list monitors\'_ will display them all'
+            return
+
+        on = True if commands[0] == 'enable' else False
+        name = commands[2].strip().lower()
+
+        monitors = zoneminder.get_monitors()
+        monitors.load()
+
+        if name not in monitors.monitors:
+            self.result = '*Error*: monitor {0} not found. ' \
+                          '_\'list monitors\'_ will display them all'.format(name)
+            return
+
+        changed = monitors.set_state(name, on)
+
+        self.result = 'Monitor {0} state {1}'.format(name, changed)
 
     def report(self, slack, channel):
         return slack.api_call("chat.postMessage",
                               channel=channel,
-                              text='toggle monitor detected',
+                              text=self.result,
                               as_user=True)
 
 #
