@@ -26,7 +26,8 @@ from abc import ABCMeta, abstractmethod
 LOGGER = logging.getLogger("zonebot")
 
 
-class Command(metaclass=ABCMeta):
+class Command:
+    __metaclass__ = ABCMeta
 
     """ Static mapping of Slack user IDs to user names """
     _usermap = {}
