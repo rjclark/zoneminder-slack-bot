@@ -86,9 +86,8 @@ def zonebot_alert_main():
 
     LOGGER.info("Sending alert about event at %s on monitor %s", timestamp, monitor)
 
-    zone_minder = ZoneMinder(config.get('ZoneMinder', 'url'))
-    zone_minder.login(config.get('ZoneMinder', 'username'),
-                      config.get('ZoneMinder', 'password'))
+    zone_minder = ZoneMinder(config)
+    zone_minder.login()
 
     data = zone_minder.load_event(monitor, timestamp)
     data = zone_minder.parse_event(data)
