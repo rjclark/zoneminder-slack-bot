@@ -21,16 +21,11 @@
 A Slack bot that can communicate and interact with a ZoneMinder security system.
 """
 
-import argparse
 import logging
 import os
-import sys
 
-from configparser import ConfigParser
-from slackclient import SlackClient
-
-from zonebot.zoneminder.zoneminder import ZoneMinder
 from zonebot.bot import ZoneBot
+from zonebot import commands, zonebot_get_id, zonebot_alert, zonebot_main
 
 __version__ = '1.0'
 __author__ = 'Robert Clark <clark@exiter.com>'
@@ -38,7 +33,7 @@ __author__ = 'Robert Clark <clark@exiter.com>'
 LOGGER = logging.getLogger("zonebot")
 
 
-def __splitall(path):
+def split_os_path(path):
     """
     Splits an OS path into all its component elements
 
@@ -67,7 +62,7 @@ def __splitall(path):
     return allparts
 
 
-def _init_logging(config):
+def init_logging(config=None):
     """
     Sets up the logging for the project. This will be to one of (in order)
 
@@ -89,7 +84,7 @@ def _init_logging(config):
     )
 
 
-def _find_config(command_line_value=None):
+def find_config(command_line_value=None):
     """
     Find the config file, search in all well known locations, in order
 
@@ -127,7 +122,7 @@ def _find_config(command_line_value=None):
     raise ValueError("No config file was provided and none could be located.")
 
 
-def _validate_config(config):
+def validate_config(config):
     """
     Make sure all the items necessary are available in the config object.
 
@@ -168,196 +163,3 @@ def _validate_config(config):
 
     # Finally
     return result
-
-
-def zonebot_getid_main():
-    """
-    Main method for the util script that figures out the bot ID
-    """
-
-    #  Set up the command line arguments we support
-    parser = argparse.ArgumentParser(description='Find the ID for a Slack bot user',
-                                     epilog="Version " + __version__ + " (c) " + __author__)
-
-    parser.add_argument('-a', '--apitoken',
-                        metavar='key',
-                        required=True,
-                        help='Slack API token')
-
-    parser.add_argument('-b', '--botname',
-                        metavar='name',
-                        required=True,
-                        help='Name of the Slack bot user to search for')
-
-    args = parser.parse_args()
-
-    slack_client = SlackClient(args.apitoken)
-    api_call = slack_client.api_call("users.list")
-
-    if api_call.get('ok'):
-        # retrieve all users so we can find our bot
-        users = api_call.get('members')
-        for user in users:
-            if 'name' in user and user.get('name').lower() == args.botname.lower():
-                print("User ID for bot '{0}' is {1}".format(user['name'], user.get('id')))
-                sys.exit(0)
-    else:
-        print("Slack API call failed (invalid API token?")
-
-    # Not found
-    print("Could not find bot user with the name {0}".format(args.botname))
-    sys.exit(1)
-
-
-def zonebot_main():
-    """
-    Main method for the zonebot script
-    """
-
-    # basic setup
-    _init_logging(None)
-
-    #  Set up the command line arguments we support
-    parser = argparse.ArgumentParser(description='A Slack bot to interact with ZoneMinder',
-                                     epilog="Version " + __version__ + " (c) " + __author__)
-
-    parser.add_argument('-c', '--config',
-                        metavar='file',
-                        required=False,
-                        help='Load the specified config file')
-
-    args = parser.parse_args()
-
-    # Create the configuration from the arguments
-    config = ConfigParser()
-    config_file = _find_config(args.config)
-    if config_file:
-        config.read(config_file)
-    else:
-        LOGGER.error("No config file could be located")
-        sys.exit(1)
-
-    if not _validate_config(config):
-        sys.exit(1)
-
-    LOGGER.debug("Configuration is valid")
-
-    # Reconfigure logging with config values
-    _init_logging(config)
-
-    LOGGER.info("Starting up")
-    LOGGER.info("Version %s", __version__)
-
-    bot_process = ZoneBot(config)
-    bot_process.start()
-
-
-def zonebot_alert_main():
-    """
-    Main method for the zonebot-alert script
-    """
-
-    # basic setup
-    _init_logging(None)
-
-    #  Set up the command line arguments we support
-    parser = argparse.ArgumentParser(
-        description='A script that receives event notifications from ZoneMinder',
-        epilog="Version " + __version__ + " (c) " + __author__)
-
-    parser.add_argument('event_dir',
-                        help='The directory in which the event files are stored')
-
-    parser.add_argument('-c', '--config',
-                        metavar='file',
-                        required=False,
-                        help='Load the specified config file')
-
-    args = parser.parse_args()
-
-    # Create the configuration from the arguments
-    config = ConfigParser()
-    config_file = _find_config(args.config)
-    if config_file:
-        config.read(config_file)
-    else:
-        LOGGER.error("No config file could be located")
-        sys.exit(1)
-
-    if not _validate_config(config):
-        sys.exit(1)
-
-    # Reconfigure logging with config values
-    _init_logging(config)
-
-    elements = __splitall(args.event_dir)
-
-    # Array will contain a variable number of leading elements
-    # but always ends with:
-    #   monitor/yy/mm/d/hh/mm/ss
-    # we split that to
-    #   monitor id
-    # and
-    #   yyyy-mm-dd hh:mm:ss
-
-    idx = -7
-    if elements[-1] == '':
-        # Just in case the path ends with a '/'
-        idx = -8
-
-    monitor = elements[idx]
-    timestamp = "20" + elements[idx+1] + "-" + elements[idx+2] + "-" + elements[idx+3] + " " + \
-                elements[idx+4] + ":" + elements[idx+5] + ":" + elements[idx+6]
-
-    LOGGER.info("Sending alert about event at %s on monitor %s", timestamp, monitor)
-
-    zone_minder = ZoneMinder(config.get('ZoneMinder', 'url'))
-    zone_minder.login(config.get('ZoneMinder', 'username'),
-                      config.get('ZoneMinder', 'password'))
-
-    data = zone_minder.load_event(monitor, timestamp)
-    data = zone_minder.parse_event(data)
-
-    if 'image_filename' not in data:
-        LOGGER.error("Could not which still frame to upload")
-
-    image_filename = os.path.join(args.event_dir, data['image_filename'])
-    if not os.path.isfile(image_filename):
-        LOGGER.error("Expect image still file %s could not be read", image_filename)
-
-    comment = 'Detected {0} on monitor {1}. {2}/index.php?view=event&eid={3}'.format(
-        data['cause'],
-        data['source'],
-        config['ZoneMinder']['url'],
-        data['id']
-    )
-
-    filename = '{0}_Event_{1}.jpeg'.format(data['source'], data['id'])
-
-    # And off it goes ...
-    slack = SlackClient(config['Slack']['api_token'])
-
-    result = slack.api_call('files.upload',
-                            initial_comment=comment,
-                            filename=filename,
-                            channels=config['Slack']['channels'],
-                            # Note: this is broken in slackclient 1.0.1 and earlier
-                            file=open(image_filename, 'rb')
-                            )
-
-    if not result:
-        LOGGER.error("Could not complete Slack API call")
-        sys.exit(1)
-
-    if not result['ok']:
-        error = "Error: "
-        if 'error' in result:
-            error = result['error']
-        elif 'warning' in result:
-            error = result['warning']
-
-        LOGGER.error("Could not upload image: %s", error)
-        sys.exit(1)
-
-    LOGGER.info('Image posted to %s as %s', config['Slack']['channels'], result['permalink_public'])
-    sys.exit(0)

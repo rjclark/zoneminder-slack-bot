@@ -20,7 +20,6 @@ The monitors attached to a ZoneMinder system
 
 import json
 import logging
-import requests
 
 LOGGER = logging.getLogger("zoneminder")
 
@@ -122,7 +121,7 @@ class Monitors(object):
         if not monitor:
             return 'no longer available'
 
-        return 'enabled' if monitor['Enabled'] == '1' else 'disabled'
+        return 'changed to ' + ('enabled' if monitor['Enabled'] == '1' else 'disabled')
 
     def __get_monitor(self, monitor_name):
         """

@@ -19,19 +19,19 @@ from nose.tools import assert_equal
 
 
 def test_empty_string():
-    result = zonebot.__splitall('')
+    result = zonebot.split_os_path('')
     assert_equal(0, len(result))
 
 
 def test_single_element_unix():
-    result = zonebot.__splitall('/')
+    result = zonebot.split_os_path('/')
 
     assert_equal(1, len(result))
     assert_equal('/', result[0])
 
 
 def test_many_elements_unix():
-    result = zonebot.__splitall('/a/b/c/d/e/f/g/h')
+    result = zonebot.split_os_path('/a/b/c/d/e/f/g/h')
 
     assert_equal(9, len(result))
     assert_equal('/', result[0])
@@ -46,7 +46,7 @@ def test_many_elements_unix():
 
 
 def test_trailing_slash():
-    result = zonebot.__splitall('/a/b/c/d/e/f/g/h/')
+    result = zonebot.split_os_path('/a/b/c/d/e/f/g/h/')
 
     assert_equal(9, len(result))
     assert_equal('/', result[0])
@@ -61,7 +61,7 @@ def test_trailing_slash():
 
 
 def test_relative_path():
-    result = zonebot.__splitall('a/b/c')
+    result = zonebot.split_os_path('a/b/c')
 
     assert_equal(3, len(result))
     assert_equal('a', result[0])

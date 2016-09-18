@@ -96,9 +96,9 @@ the security provided by the Slack environment.''',
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'zonebot=zonebot:zonebot_main',
-            'zonebot-alert=zonebot:zonebot_alert_main',
-            'zonebot-getid=zonebot:zonebot_getid_main',
+            'zonebot=zonebot.zonebot_main:zonebot_main',
+            'zonebot-alert=zonebot.zonebot_alert:zonebot_alert_main',
+            'zonebot-getid=zonebot.zonebot_get_id:zonebot_getid_main',
         ],
     },
 )

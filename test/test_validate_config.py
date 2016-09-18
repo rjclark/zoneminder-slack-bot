@@ -27,12 +27,12 @@ logging.getLogger("zonebot").disabled = True
 
 
 def test_null_config():
-    assert not zonebot._validate_config(None)
+    assert not zonebot.validate_config(None)
 
 
 def test_empty_config():
     config = ConfigParser()
-    assert not zonebot._validate_config(config)
+    assert not zonebot.validate_config(config)
 
 
 def test_example_config_valid():
@@ -43,7 +43,7 @@ def test_example_config_valid():
     config = ConfigParser()
     config.read(example_config)
 
-    assert zonebot._validate_config(config)
+    assert zonebot.validate_config(config)
 
 
 def test_url_fixes():
@@ -52,21 +52,21 @@ def test_url_fixes():
    config.read(example_config)
 
    config['ZoneMinder']['url'] = 'https://sample/zm///////'
-   assert zonebot._validate_config(config)
+   assert zonebot.validate_config(config)
    assert config['ZoneMinder']['url'] == 'https://sample/zm'
 
    config['ZoneMinder']['url'] = 'https://sample/zm/'
-   assert zonebot._validate_config(config)
+   assert zonebot.validate_config(config)
    assert config['ZoneMinder']['url'] == 'https://sample/zm'
 
    config['ZoneMinder']['url'] = 'https://sample/zm'
-   assert zonebot._validate_config(config)
+   assert zonebot.validate_config(config)
    assert config['ZoneMinder']['url'] == 'https://sample/zm'
 
 
 def test_no_config_file():
     try:
-        zonebot._find_config(None)
+        zonebot.find_config(None)
         assert "No config available should have triggered an exception"
     except ValueError:
         #  exported
@@ -78,7 +78,7 @@ def test_command_line_config_file():
 
     assert os.path.isfile(example_config)
 
-    location = zonebot._find_config(example_config)
+    location = zonebot.find_config(example_config)
 
     assert_equal(example_config, location)
 
@@ -98,7 +98,7 @@ def test_user_config_located():
 
         assert os.path.isfile(user_file)
 
-        location = zonebot._find_config(None)
+        location = zonebot.find_config(None)
 
         assert_equal(user_file, location)
     finally:

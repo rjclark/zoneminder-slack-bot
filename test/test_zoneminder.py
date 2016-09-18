@@ -17,7 +17,7 @@
 import os
 from nose.tools import assert_equal
 import zonebot
-from zonebot import ZoneMinder
+from zonebot.zoneminder import ZoneMinder
 import logging
 import json
 
@@ -29,7 +29,7 @@ logging.getLogger("zoneminder").disabled = True
 
 def test_create():
     config = __load_config()
-    zonebot = ZoneMinder("http://zomeurl")
+    zoneminder = ZoneMinder("http://zomeurl")
 
 
 def __load_config():
@@ -41,6 +41,6 @@ def __load_config():
     config = ConfigParser()
     config.read(example_config)
 
-    zonebot._validate_config(config)
+    zonebot.validate_config(config)
 
     return config

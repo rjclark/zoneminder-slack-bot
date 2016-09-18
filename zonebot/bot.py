@@ -23,10 +23,10 @@ The main BOT class.
 import logging
 import re
 import time
-import sys
 
 from slackclient import SlackClient
 from zonebot.zoneminder import *
+from zonebot.commands import *
 
 LOGGER = logging.getLogger("zonebot")
 
@@ -35,42 +35,6 @@ class ZoneBot(object):
     """
     A smart bot that interacts with Slack via chat commands.
     """
-
-    dispatch_map = dict(
-        unknown=dict(
-            function='unknown_command',
-            name='unknown',
-            permissions='any'
-        ),
-        help=dict(
-            function='list_commands',
-            name='help',
-            permissions='any'
-        ),
-        denied=dict(
-            function="command_denied",
-            name='denied',
-            permissions='any',
-        ),
-        commands=dict(
-            function='list_commands',
-            name='commands',
-            help='List available commands',
-            permissions='any'
-        ),
-        enable=dict(
-            function='enable_monitor',
-            name='enable',
-            help='Enables alarms on the named monitor (by name, not monitor ID)',
-            permissions='write'
-        ),
-        disable=dict(
-            function='disable_monitor',
-            name='disable',
-            help='Disables alarms on the named monitor (by name, not monitor ID)',
-            permissions='write'
-        )
-    )
 
     def __init__(self, config):
         self.config = config
@@ -81,8 +45,6 @@ class ZoneBot(object):
 
         self.AT_BOT = "<@" + config['Slack']['bot_id'] + ">"
         self.BOT_NAME = config['Slack']['bot_name'] or "zonebot"
-
-        self._usermap = {}
 
     def start(self):
         """
@@ -160,7 +122,7 @@ class ZoneBot(object):
                     # return text after the @ mention, whitespace removed
                     return slack_data['user'], \
                            slack_data['channel'], \
-                           slack_data['text'].split(bot_id)[1].strip().lower()
+                           slack_data['text'].split(bot_id)[1].strip()
 
         # No match ...
         return None, None, None
@@ -179,174 +141,22 @@ class ZoneBot(object):
         :type channel: str
         """
 
-        LOGGER.info("Received command '%s' in channel %s from %s (%s)",
+        user_name = Command.resolve_user(user, self.slack_client)
+
+        LOGGER.info("Received command '%s' in channel %s from %s",
                     command_string,
                     channel,
-                    user,
-                    'name not cached' if user not in self._usermap else self._usermap[user])
+                    user_name if user_name else user)
 
         if not command_string:
-            command = 'help'
             words = ['help']
         else:
             words = re.split('\W+', command_string)
-            if len(words) == 0:
-                command = 'unknown'
-            else:
-                command = words[0].lower()
 
-        if not command or command not in self.dispatch_map:
-            command = 'unknown'
+        cmd = get_command(words, user_id=user, config=self.config, slack=self.slack_client)
 
-        if not self._has_permission(user, command):
-            command = 'denied'
+        cmd.perform(user_name=user_name, commands=words, zoneminder=self.zoneminder)
+        result = cmd.report(self.slack_client, channel)
 
-        # pass of the command the the correct dispatch function
-        function = self.dispatch_map[command]['function']
-        response = getattr(self, function)(words, user)
+        Command.log_slack_result(result)
 
-        result = self.slack_client.api_call("chat.postMessage",
-                                            channel=channel,
-                                            text=response,
-                                            as_user=True)
-
-        if not result['ok']:
-            error = "Error: "
-            if 'error' in result:
-                error = result['error']
-            elif 'warning' in result:
-                error = result['warning']
-
-            LOGGER.error("Could not respond to the command: %s", error)
-
-    def unknown_command(self, words, user):
-        """
-        Triggered for unknown commands.
-        """
-
-        return 'Unknown command {}. Use "@{} commands" to list available commands' \
-            .format('' if len(words[0]) == 0 else words[0],
-                    self.BOT_NAME)
-
-    def command_denied(self, words, user):
-        return "User does not have permission to execute the {} command".format(words[1])
-
-    def list_commands(self, words, user):
-        """
-        Returns the commands allow for this bot (and user?)
-        """
-
-        result = 'Available commands:\n'
-
-        for c in self.dispatch_map:
-            if c in ['help', 'unknown', 'denied']:
-                continue
-            elif not self._has_permission(user, c):
-                continue
-
-            result += ' _{}_: {}\n'.format(self.dispatch_map[c]['name'], self.dispatch_map[c]['help'])
-
-        return result
-
-    def enable_monitor(self, words, user):
-        """
-        Enables alarms on the named monitor.
-        """
-
-        return self.__toggle_monitor(True, words, user)
-
-    def disable_monitor(self, words, user):
-        """
-        Disables alarms on the named monitor.
-        """
-
-        return self.__toggle_monitor(False, words, user)
-
-    def __toggle_monitor(self, on, words, user):
-        """
-        Toggles the active alarm state for the named monitor
-        """
-
-        if not words or len(words) < 2:
-            return '*Error* the name of the monitor is required'
-
-        all_monitors = self.zoneminder.get_monitors()
-        msg = all_monitors.set_state(words[1], on)
-
-        return 'Monitor {} state: {}'.format(words[1], msg)
-
-    def _has_permission(self, user_id, command):
-        """
-        Checks to see if the user has the required permissions to execute the provided
-        command.
-        :param user_id: Slack user ID of the user (e.g. 'U1234567890')
-        :param command: The command to be checked
-        :return: True if the user is allow the execute the command and false if they are not.
-        :rtype: bool
-        """
-
-        if command not in self.dispatch_map:
-            return False
-
-        command_data = self.dispatch_map[command]
-
-        if command_data['permissions'] == 'any':
-            return True
-
-        permission_required = command_data['permissions']
-
-        # Now things get complicated.
-
-        # First check to see if any permissions are defined. If they are not, then
-        # anyone can do anything.
-        if not self.config.has_section('Permissions'):
-            LOGGER.info("No config section")
-            return True
-
-        # Well then. Let's turn the ID into a user name and see what their permissions are.
-        # Results are cached so check the cache first
-
-        user_name = None
-        if user_id in self._usermap:
-            user_name = self._usermap[user_id]
-
-        if not user_name:
-            LOGGER.info("Doing Slack lookup for user ID %s", user_id)
-            result = self.slack_client.api_call("users.info",
-                                                user=user_id,
-                                                as_user=True)
-
-            if not result['ok']:
-                LOGGER.error("Could not convert %s to a user name: %s", user_id, result['error'])
-                return False
-
-            user_name = result['user']['name'].lower()
-            self._usermap[user_id] = user_name
-
-        if not user_name:
-            LOGGER.error('Could not resolve user ID %s', user_id)
-            return False
-
-        # Not listed in the permissions section, they only have read access
-        access = self.config.get('Permissions', user_name.lower(), fallback='read')
-        access = access.split(' ')
-
-        # They have specific permissions listed. See if this command is one of them
-
-        if 'any' in access:
-            # they are allowed to do anything
-            return True
-        if permission_required in access:
-            # check by type
-            return True
-        elif command in access:
-            # check by specific command
-            return True
-
-        # No match, not allowed
-        LOGGER.info("User ID %s maps to %s and has access %s. They are not allowed the %s command",
-                    user_id,
-                    user_name,
-                    access,
-                    command)
-        return False
