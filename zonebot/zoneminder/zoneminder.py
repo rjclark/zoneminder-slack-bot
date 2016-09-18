@@ -284,7 +284,7 @@ class ZoneMinder(object):
 
         response = self.session.get(url, stream=True)
         if response.status_code != 200:
-            return None, 'Could not download image. Response code %d'.format(response.status_code)
+            return None, 'Could not download image. Response code {0}'.format(response.status_code)
 
         return BytesIO(response.content), None
 

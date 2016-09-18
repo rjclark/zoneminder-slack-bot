@@ -246,7 +246,6 @@ class Help(Command):
     def report(self, slack, user, channel):
         text = 'Supported commands for <@{0}>\n'.format(user)
 
-        global _all_commands
         for command_name in sorted(_all_commands.keys(), key=lambda x: _all_commands[x]['index']):
             command = _all_commands[command_name]
 
@@ -286,7 +285,7 @@ class Denied(Unknown):
         super(Denied, self).__init__(config=config)
 
     def report(self, slack, user, channel):
-        text = "_*Error*_: <@{0}> You do not have permission to execute {0}".format(
+        text = "_*Error*_: <@{0}> You do not have permission to execute {1}".format(
             user, self.commands)
 
         return slack.api_call("chat.postMessage",
@@ -476,8 +475,6 @@ def get_command(words, user_name=None, config=None):
     :return: The command matching the input. A command is always returned
     :rtype: Command
     """
-
-    global _all_commands
 
     if not words or len(words) < 1:
         return Help()
