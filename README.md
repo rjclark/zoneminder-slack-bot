@@ -98,6 +98,7 @@ file.
 [![Build Status](https://travis-ci.org/rjclark/zoneminder-slack-bot.svg?branch=master)](https://travis-ci.org/rjclark/zoneminder-slack-bot)
 [![Coverage Status](https://coveralls.io/repos/github/rjclark/zoneminder-slack-bot/badge.svg?branch=master)](https://coveralls.io/github/rjclark/zoneminder-slack-bot?branch=master)
 [![PyPI version](https://badge.fury.io/py/zonebot.svg)](https://pypi.python.org/pypi/zonebot)
+[![Dependency Status](https://www.versioneye.com/user/projects/57def689037c2000458f770d/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/57def689037c2000458f770d)
 
 If you wish to contribute, pull requests against the
 [GitHub repository](https://github.com/rjclark/zoneminder-slack-bot) are welcomed.

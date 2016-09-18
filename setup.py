@@ -44,11 +44,9 @@ the security provided by the Slack environment.''',
 
     packages=[
         'zonebot',  # this must be the same as the name above
-        'zonebot.zoneminder'
     ],
     package_dir={
         'zonebot': 'zonebot',
-        'zonebot.zoneminder': 'zonebot/zoneminder'
     },
 
     include_package_data=True,
@@ -86,6 +84,7 @@ the security provided by the Slack environment.''',
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         'slackclient',
+        'python-daemon',
         'configparser'
     ],
 
