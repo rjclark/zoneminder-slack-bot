@@ -24,9 +24,6 @@ A Slack bot that can communicate and interact with a ZoneMinder security system.
 import logging
 import os
 
-from zonebot.bot import ZoneBot
-from zonebot import commands, zonebot_get_id, zonebot_alert, zonebot_main
-
 __version__ = '1.0'
 __author__ = 'Robert Clark'
 __email__ = "clark@exiter.com"

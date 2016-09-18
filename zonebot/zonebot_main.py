@@ -20,8 +20,7 @@ import sys
 
 from configparser import ConfigParser
 import zonebot
-from zonebot import ZoneBot
-# from zonebot import init_logging, _find_config, _validate_config
+from zonebot.bot import ZoneBot
 
 LOGGER = logging.getLogger("zonebot")
 

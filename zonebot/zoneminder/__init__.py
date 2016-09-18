@@ -14,5 +14,3 @@
 #   limitations under the License.
 #
 
-from zonebot.zoneminder.zoneminder import ZoneMinder
-from zonebot.zoneminder.monitors import Monitors

@@ -17,7 +17,7 @@
 import os
 from nose.tools import assert_equal
 import zonebot
-from zonebot.zoneminder import ZoneMinder
+from zonebot.zoneminder.zoneminder import ZoneMinder
 import logging
 import json
 

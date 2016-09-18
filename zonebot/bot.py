@@ -27,7 +27,7 @@ from pwd import getpwnam
 from grp import getgrnam
 
 from slackclient import SlackClient
-from zonebot.zoneminder import *
+from zonebot.zoneminder.zoneminder import ZoneMinder
 from zonebot.commands import *
 
 LOGGER = logging.getLogger("zonebot")
