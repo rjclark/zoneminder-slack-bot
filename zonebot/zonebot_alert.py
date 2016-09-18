@@ -134,5 +134,14 @@ def zonebot_alert_main():
         LOGGER.error("Could not upload image: %s", error)
         sys.exit(1)
 
-    LOGGER.info('Image posted to %s as %s', config['Slack']['channels'], result['permalink_public'])
+    if 'permalink_public' in result['file']:
+        link = result['file']['permalink_public']
+    elif 'permalink' in result['file']:
+        link = result['file']['permalink']
+    else:
+        link = 'unknown'
+
+    print(result)
+
+    LOGGER.info('Image posted to %s as %s', config['Slack']['channels'], link)
     sys.exit(0)
