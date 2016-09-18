@@ -200,3 +200,37 @@ def test_permission_combined():
 
     # unknown command, never allowed
     verify_command(['something', 'else'], config, 'me', zonebot.commands.Unknown)
+
+
+def test_humansize():
+    # Bytes
+    assert '0 bytes' == humansize(0)
+    assert '1000 bytes' == humansize(1000)
+    assert '1023 bytes' == humansize(1023)
+
+    # Kb
+    assert '1 Kb' == humansize(1024)
+    assert '1 Kb' == humansize(1024 + 1)
+    assert '2.17 Kb' == humansize(2222)
+    assert '1024 Kb' == humansize((1024 * 1024) - 1)
+
+    #  Mb
+    scale = 1024 * 1024
+    assert '1 Mb' == humansize(scale)
+    assert '1 Mb' == humansize(scale + 1)
+    assert '2.17 Mb' == humansize(scale * 2.17)
+    assert '1024 Mb' == humansize((scale * 1024) - 1)
+
+    #  Gb
+    scale = 1024 * 1024 * 1024
+    assert '1 Gb' == humansize(scale)
+    assert '1 Gb' == humansize(scale + 1)
+    assert '2.17 Gb' == humansize(scale * 2.17)
+    assert '1024 Gb' == humansize((scale * 1024) - 1)
+
+    #  Tb
+    scale = 1024 * 1024 * 1024 * 1024
+    assert '1 Tb' == humansize(scale)
+    assert '1 Tb' == humansize(scale + 1)
+    assert '2.17 Tb' == humansize(scale * 2.17)
+    assert '1024 Tb' == humansize((scale * 1024) - 1)

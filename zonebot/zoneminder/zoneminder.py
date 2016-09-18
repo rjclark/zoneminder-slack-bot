@@ -87,6 +87,74 @@ class ZoneMinder(object):
         # extra classes for the various components of ZoneMinder
         self.monitors = Monitors(self.session, self.url)
 
+    def get_status(self):
+        """
+        Obtains general status information about this install
+
+        :return: daemon state, process load, disk used
+        :rtype: dict
+        """
+
+        status = {}
+
+        #
+        # Version
+        #
+        url = "{0}/api/host/getVersion.json".format(self.url)
+        response = self.session.get(url=url)
+        if response.status_code != 200:
+            status['version'] = 'Could not obtain ZoneMinder version. Response code {0}' \
+                .format(response.status_code)
+        else:
+            data = json.loads(response.text)
+            status['version'] = data['version']
+
+        #
+        # Daemon status
+        #
+        url = "{0}/api/host/daemonCheck.json".format(self.url)
+        response = self.session.get(url=url)
+        if response.status_code != 200:
+            status['daemon'] = 'Could not obtain daemon status. Response code {0}'\
+                .format(response.status_code)
+        else:
+            data = json.loads(response.text)
+            status['daemon'] = 'Running' if 1 == data['result'] else '*Not Running*'
+
+        #
+        # Load average
+        #
+        url = "{0}/api/host/getLoad.json".format(self.url)
+        response = self.session.get(url=url)
+        if response.status_code != 200:
+            status['load'] = 'Could not obtain process load status. Response code {0}' \
+                .format(response.status_code)
+        else:
+            data = json.loads(response.text)
+            status['load'] = '/'.join(map(str, data['load']))
+
+        #
+        # Disk usage
+        #
+        url = "{0}/api/host/getDiskPercent.json".format(self.url)
+        response = self.session.get(url=url)
+        if response.status_code != 200:
+            status['disk'] = 'Could not obtain disk usage status. Response code {0}' \
+                .format(response.status_code)
+        else:
+            status['usage'] = []
+            data = json.loads(response.text)
+            for u in data['usage']:
+                if 'Total' == u:
+                    continue
+                status['usage'].append({
+                    'name': u,
+                    'space': float(data['usage'][u]['space'])
+                })
+
+        return status
+
+
     def get_monitors(self):
         """
         Obtains the list of monitors connected to ZoneMinder. You must call `login` first.

@@ -173,6 +173,35 @@ class About(Command):
                               as_user=True)
 
 
+class Status(Command):
+    """
+    Prints ZoneMinder status
+    """
+    def __init__(self, config=None):
+        super(Status, self).__init__(config=config)
+        self.status = {}
+
+    def perform(self, user_name, commands, zoneminder):
+        self.status = zoneminder.get_status()
+
+    def report(self, slack, channel):
+        text = ''
+
+        text += '• _ZoneMinder version_: {0}\n'.format(self.status['version'])
+        text += '• _ZoneMinder daemon_: {0}\n'.format(self.status['daemon'])
+        text += '• _Load average_: {0}\n'.format(self.status['load'])
+
+        gb = 1024 * 1024 * 1024
+        for usage in self.status['usage']:
+            text += '• _{0} monitor disk usage_: {1}\n'\
+                .format(usage['name'], humansize(usage['space'] * gb))
+
+        return slack.api_call("chat.postMessage",
+                              channel=channel,
+                              text=text,
+                              as_user=True)
+
+
 class Help(Command):
     """
     Generates the help test that lists available commands
@@ -341,23 +370,29 @@ _all_commands = {
         'help': 'Display bot version information',
         'index': 1
     },
+    'status': {
+        'permission': 'any',
+        'classname': Status,
+        'help': 'Display the current ZoneMinder status',
+        'index': 2
+    },
     'list monitors': {
         'permission': 'read',
         'help': 'List all monitors and their current state',
         'classname': ListMonitors,
-        'index': 2
+        'index': 3
     },
     'enable monitor': {
         'permission': 'write',
         'help': 'Enable alarms on a monitor (supplied by name, not ID)',
         'classname': ToggleMonitor,
-        'index': 3
+        'index': 4
     },
     'disable monitor': {
         'permission': 'write',
         'help': 'Disable alarms on a monitor (supplied by name, not ID)',
         'classname': ToggleMonitor,
-        'index': 4
+        'index': 5
     }
 }
 
@@ -396,3 +431,17 @@ def get_command(words, user_id=None, config=None, slack=None):
 
     return _all_commands[command_text]['classname'](config=config)
 
+
+suffixes = ['bytes', 'Kb', 'Mb', 'Gb', 'Tb', 'Pb']
+
+
+def humansize(nbytes):
+    if nbytes == 0:
+        return '0 bytes'
+
+    i = 0
+    while nbytes >= 1024 and i < len(suffixes)-1:
+        nbytes /= 1024.
+        i += 1
+    f = ('%.2f' % nbytes).rstrip('0').rstrip('.')
+    return '%s %s' % (f, suffixes[i])
