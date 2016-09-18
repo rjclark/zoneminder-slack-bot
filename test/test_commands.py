@@ -24,8 +24,8 @@ logging.basicConfig(level=logging.CRITICAL)
 logging.getLogger("zonebot").disabled = True
 
 
-def verify_command(words, config, user_id, expected):
-    cmd = get_command(words=words, user_id=user_id, config=config)
+def verify_command(words, config, user_name, expected):
+    cmd = get_command(words=words, user_name=user_name, config=config)
     assert isinstance(cmd, expected), "Expected class %s, found %s" % (type(expected), type(cmd))
 
 

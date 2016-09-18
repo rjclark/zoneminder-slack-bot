@@ -67,9 +67,8 @@ class ZoneBot(object):
         """
         Starts the bot by connecting to Slack.
         """
-        self.zoneminder = ZoneMinder(self.config.get('ZoneMinder', 'url'))
-        self.zoneminder.login(self.config.get('ZoneMinder', 'username'),
-                              self.config.get('ZoneMinder', 'password'))
+        self.zoneminder = ZoneMinder(self.config)
+        self.zoneminder.login()
 
         self.connect()
 
@@ -156,10 +155,10 @@ class ZoneBot(object):
         # Remove any blank or empty entries
         words = [x for x in words if x]
 
-        cmd = get_command(words, user_id=user, config=self.config, slack=self.slack_client)
+        cmd = get_command(words, user_name=user, config=self.config)
 
         cmd.perform(user_name=user_name, commands=words, zoneminder=self.zoneminder)
-        result = cmd.report(self.slack_client, channel)
+        result = cmd.report(self.slack_client, user, channel)
 
         Command.log_slack_result(result)
 

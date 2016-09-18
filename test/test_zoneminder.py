@@ -29,7 +29,7 @@ logging.getLogger("zoneminder").disabled = True
 
 def test_create():
     config = __load_config()
-    zoneminder = ZoneMinder("http://zomeurl")
+    zoneminder = ZoneMinder(config)
 
 
 def __load_config():

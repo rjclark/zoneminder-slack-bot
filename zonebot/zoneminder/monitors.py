@@ -66,6 +66,22 @@ class Monitors(object):
             m = monitor['Monitor']
             self.monitors[m['Name'].lower()] = m
 
+    def get_value(self, monitor_name, value_name):
+        """
+        Returns the named value from the named monitor. Assumes `load` has already been called.
+
+        :param monitor_name: The name (not ID) of the monitor
+        :param value_name: The value to get from the monitor
+        :return: The named value or None
+        :rtype: str
+        """
+
+        monitor = self.__get_monitor(monitor_name)
+        if not monitor:
+            return None
+
+        return monitor[value_name]
+
     def is_enabled(self, monitor_name):
         """
         Whether or not the named monitor is both attached and enabled. Assumes `load`
@@ -77,12 +93,7 @@ class Monitors(object):
         :rtype: bool
         """
 
-        monitor = self.__get_monitor(monitor_name)
-
-        if not monitor:
-            return False
-
-        return monitor['Enabled'] == '1'
+        return '1' == self.get_value(monitor_name, 'Enabled')
 
     def set_state(self, monitor_name, state):
         """
@@ -115,12 +126,13 @@ class Monitors(object):
         if result['message'] != 'Saved':
             return "not changed: {0}".format(result['Message'])
 
+        # Reload to get the new monitor state
         self.load()
-        monitor = self.__get_monitor(monitor_name)
-        if not monitor:
+        enabled = self.get_value(monitor_name, 'Enabled')
+        if enabled is None:
             return 'no longer available'
 
-        return 'changed to ' + ('enabled' if monitor['Enabled'] == '1' else 'disabled')
+        return 'changed to ' + ('enabled' if enabled == '1' else 'disabled')
 
     def __get_monitor(self, monitor_name):
         """

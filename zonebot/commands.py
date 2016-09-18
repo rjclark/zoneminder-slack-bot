@@ -43,7 +43,7 @@ class Command:
         pass
 
     @abstractmethod
-    def report(self, slack, channel):
+    def report(self, slack, user, channel):
         pass
 
     @staticmethod
@@ -152,6 +152,33 @@ class Command:
 
         return False
 
+    @staticmethod
+    def get_monitor(commands, index, zoneminder):
+        """
+        Returns the name of the monitor based on the provided commands
+
+        :param commands: List of commands
+        :param index: Where in the commands to look for the name of the monitor
+        :param zoneminder: The ZoneMinder instance
+        :return: name, error text
+        :rtype: str, :class:`zonebot.zoneminder.Monitors`, str
+        """
+
+        if len(commands) <= index:
+            return None, None, '*Error*: the name of the monitor is required. ' \
+                               '_\'list monitors\'_ will display them all'
+
+        name = commands[index].strip().lower()
+
+        monitors = zoneminder.get_monitors()
+        monitors.load()
+
+        if name not in monitors.monitors:
+            return None, None, '*Error*: monitor {0} not found. ' \
+                               '_\'list monitors\'_ will display them all'.format(name)
+
+        return name, monitors, None
+
 
 class About(Command):
     """
@@ -163,7 +190,7 @@ class About(Command):
     def perform(self, user_name, commands, zoneminder):
         pass
 
-    def report(self, slack, channel):
+    def report(self, slack, user, channel):
         text = "*{0}* version {1}\n".format(zonebot.__project_name__, zonebot.__version__)
         text += "_Copyright_ (c) 2016 <mailto:{1}|{0}> .".format(zonebot.__author__, zonebot.__email__)
 
@@ -184,7 +211,7 @@ class Status(Command):
     def perform(self, user_name, commands, zoneminder):
         self.status = zoneminder.get_status()
 
-    def report(self, slack, channel):
+    def report(self, slack, user, channel):
         text = ''
 
         text += '• _ZoneMinder version_: {0}\n'.format(self.status['version'])
@@ -216,8 +243,8 @@ class Help(Command):
         self.user_name = user_name
         pass
 
-    def report(self, slack, channel):
-        text = 'Supported commands\n'
+    def report(self, slack, user, channel):
+        text = 'Supported commands for <@{0}>\n'.format(user)
 
         global _all_commands
         for command_name in sorted(_all_commands.keys(), key=lambda x: _all_commands[x]['index']):
@@ -229,8 +256,6 @@ class Help(Command):
             permission = command['permission']
             if Command.has_permission(self.user_name, self.config, command_name, permission):
                 text += "• _{0}_ : {1}\n".format(command_name, command['help'])
-
-        text += "_{0} version {1}_".format(zonebot.__project_name__, zonebot.__version__)
 
         return slack.api_call("chat.postMessage",
                               channel=channel,
@@ -246,7 +271,7 @@ class Unknown(Command):
     def perform(self, user_name, commands, zoneminder):
         self.commands = ' '.join(commands)
 
-    def report(self, slack, channel):
+    def report(self, slack, user, channel):
         text = "_*Error*_: Unrecognized command '{0}'. Use 'help' for a list of supported commands"\
             .format(self.commands)
 
@@ -260,8 +285,9 @@ class Denied(Unknown):
     def __init__(self, config=None):
         super(Denied, self).__init__(config=config)
 
-    def report(self, slack, channel):
-        text = "_*Error*_: You do not have permission to execute {0}".format(self.commands)
+    def report(self, slack, user, channel):
+        text = "_*Error*_: <@{0}> You do not have permission to execute {0}".format(
+            user, self.commands)
 
         return slack.api_call("chat.postMessage",
                               channel=channel,
@@ -302,7 +328,7 @@ class ListMonitors(Command):
                 'color': color
             })
 
-    def report(self, slack, channel):
+    def report(self, slack, user, channel):
         return slack.api_call("chat.postMessage",
                               channel=channel,
                               attachments=self.attachments,
@@ -315,31 +341,67 @@ class ToggleMonitor(Command):
         self.result = None
 
     def perform(self, user_name, commands, zoneminder):
-        if len(commands) < 3:
-            self.result = '*Error*: the name of the monitor is required. ' \
-                          '_\'list monitors\'_ will display them all'
+
+        name, monitors, error_text = Command.get_monitor(commands, 2, zoneminder)
+        if not name:
+            self.result = error_text
             return
 
         on = True if commands[0] == 'enable' else False
-        name = commands[2].strip().lower()
-
-        monitors = zoneminder.get_monitors()
-        monitors.load()
-
-        if name not in monitors.monitors:
-            self.result = '*Error*: monitor {0} not found. ' \
-                          '_\'list monitors\'_ will display them all'.format(name)
-            return
-
         changed = monitors.set_state(name, on)
 
         self.result = 'Monitor {0} state {1}'.format(name, changed)
 
-    def report(self, slack, channel):
+    def report(self, slack, user, channel):
         return slack.api_call("chat.postMessage",
                               channel=channel,
                               text=self.result,
                               as_user=True)
+
+
+class GetStillImage(Command):
+    """
+    Returns the current still image from a monitor and replies to the channel with it.
+    """
+
+    def __init__(self, config=None):
+        super(GetStillImage, self).__init__(config=config)
+        self.error_text = None
+        self.image = None
+        self.name = None
+
+    def perform(self, user_name, commands, zoneminder):
+        name, monitors, error_text = Command.get_monitor(commands, 2, zoneminder)
+        if not name:
+            self.error_text = error_text
+            return
+
+        self.name = monitors.get_value(name, 'Name')
+
+        image, error_text = zoneminder.get_still_image(monitors.get_value(name, 'Id'))
+        if error_text:
+            self.error_text = error_text
+        else:
+            self.image = image
+
+    def report(self, slack, user, channel):
+        if self.error_text:
+            return slack.api_call("chat.postMessage",
+                                  channel=channel,
+                                  text=self.error_text,
+                                  as_user=True)
+
+        comment = 'Latest still image from {0}'.format(self.name)
+        filename = '{0} Latest.jpeg'.format(self.name)
+
+        # And off it goes ...
+        return slack.api_call('files.upload',
+                              initial_comment=comment,
+                              filename=filename,
+                              channels=channel,
+                              # Note: this is broken in slackclient 1.0.1 and earlier
+                              file=self.image
+                              )
 
 #
 # meta - true for meta (not user) command that should not show up in the help
@@ -393,19 +455,24 @@ _all_commands = {
         'help': 'Disable alarms on a monitor (supplied by name, not ID)',
         'classname': ToggleMonitor,
         'index': 5
+    },
+    'get image': {
+        'permission': 'read',
+        'help': 'Get a still image from the named monitor (supplied by name, not ID)',
+        'classname': GetStillImage,
+        'index': 6
     }
 }
 
 
-def get_command(words, user_id=None, config=None, slack=None):
+def get_command(words, user_name=None, config=None):
     """
     Gets the command that matches the input words.
 
     :param words: The list of words that make up the command and its arguments.
     :type words: List[str]
-    :param user_id:
+    :param user_name: Name (not ID) of the user requesting the command
     :param config:
-    :param slack:
     :return: The command matching the input. A command is always returned
     :rtype: Command
     """
@@ -424,7 +491,6 @@ def get_command(words, user_id=None, config=None, slack=None):
         return Unknown()
 
     perms = _all_commands[command_text]['permission']
-    user_name = Command.resolve_user(user_id, slack)
 
     if not Command.has_permission(user_name, config, command_text, perms):
         return Denied()

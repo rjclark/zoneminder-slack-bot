@@ -20,6 +20,9 @@ Class(es) to connect to and interact with a [ZoneMinder](https://www.zoneminder.
 
 import json
 import logging
+import time
+import hashlib
+from io import BytesIO
 
 import requests
 from zonebot.zoneminder.monitors import Monitors
@@ -34,15 +37,17 @@ class ZoneMinder(object):
     The associated HTTP session, and all actions, are not available until `login` is called.
     """
 
-    def __init__(self, url):
+    def __init__(self, config):
         """
         Creates a new class to interact with Zoneminder. Each class is a separate session.
         The user name and password are not stored. Instead we log into the Zoneminder
         system and store a cookie in the session that proves we have authorization.
 
-        :param url: The URL of the Zoneminder installation.
-        :type url: str
+        :param config: Bot configuration
+        :type config: configparser.ConfigParser
         """
+
+        url = config.get('ZoneMinder', 'url')
 
         while url.endswith("/"):
             # We need the URL in a consistent format as some of the API calls
@@ -53,24 +58,22 @@ class ZoneMinder(object):
         self.url = url
         LOGGER.debug("Base url is %s" % self.url)
 
+        self.config = config
+
         # Filled in when we login()
         self.session = None
         self.monitors = None
 
-    def login(self, username, password):
+    def login(self):
         """
         Creates a new session by logging into the ZoneMinder system
-        :param username: The user name to use when connecting
-        :type username: str
-        :param password: The password to use when connecting
-        :type password: str
         """
 
         self.session = requests.Session()
 
         params = {
-            "username": username,
-            "password": password,
+            "username": self.config.get('ZoneMinder', 'username', fallback=''),
+            "password": self.config.get('ZoneMinder', 'password', fallback=''),
             "action": "login",
             "view": "console"
         }
@@ -153,7 +156,6 @@ class ZoneMinder(object):
                 })
 
         return status
-
 
     def get_monitors(self):
         """
@@ -248,3 +250,115 @@ class ZoneMinder(object):
             result['image_filename'] = key_frame_id.zfill(5) + '-capture.jpg'
 
         return result
+
+    def get_still_image(self, monitor):
+        """
+        Returns a single still image from the monitor.
+
+        :param monitor: The numeric monitor ID to retrieve the image from
+        :type monitor: int
+        :return:
+        """
+
+        zms = self.config.get('ZoneMinder', 'PATH_ZMS', fallback='')
+
+        # Problem: url ends with '/zm/' (probably) and zms path starts with '/zm' (probably)
+        # zms is defined as the full path from the host so we should be able to reconstruct
+        # from the URL.
+
+        scheme, netloc, path, params, query, fragment = requests.utils.urlparse(self.url)
+
+        auth = _build_login_hash(self.config)
+
+        url = '{0}://{1}{2}?mode=single&scale=100&monitor={3}{4}{5}'.format(
+            scheme,
+            netloc,
+            zms,
+            monitor,
+            '' if not auth else '&',
+            '' if not auth else auth
+        )
+
+        # http://server.example.com/zm/cgi-bin/nph-zms?mode=single&scale=100&monitor=1&auth=somerandomstring
+        LOGGER.debug('Requesting image from %s', url)
+
+        response = self.session.get(url, stream=True)
+        if response.status_code != 200:
+            return None, 'Could not download image. Response code %d'.format(response.status_code)
+
+        return BytesIO(response.content), None
+
+
+def _build_login_hash(config):
+    """
+    Builds the hash necessary for logging in to the ZoneMinder server. This
+    ensures that the user name and password are never transmitted over the wire.
+
+    ..note:: Hashes are valid for up to two hours.
+
+    See http://blog.chapus.net/zoneminder-hash-logins/
+
+    :param config: Current configuration of the bot
+    :type config: configparser.ConfigParser
+
+    :returns: The time-limited, encoded, query string that we need to pass to ZoneMinder
+    :rtype: str
+    """
+
+    use_auth = config.getboolean('ZoneMinder', 'OPT_USE_AUTH', fallback=True)
+    if not use_auth:
+        return None
+
+    # These all have to be here or the login at startup would have failed out.
+    username = config.get('ZoneMinder', 'username', fallback=None)
+    password = config.get('ZoneMinder', 'password', fallback=None)
+
+    auth_relay = config.get('ZoneMinder', 'AUTH_RELAY', fallback='plain')
+    if 'plain' == auth_relay:
+        return 'user={0}&pass={1}'.format(username, password)
+    elif 'none' == auth_relay:
+        return 'user={0}'.format(username)
+
+    # We must need to generate an auth hash
+
+    auth_hash_secret = config.get('ZoneMinder', 'AUTH_HASH_SECRET', fallback='')
+
+    # Timestamp fields are:
+    #   current hour (0-23)
+    #   day of the month (1-31)
+    #   month (PHP indexes from zero so subtract 1)
+    #   year (PHP indexes from year 1900, so 2016 - 2000 + 100 == 116)
+    timestamp = time.localtime()
+
+    #
+    # password needs to be hashed when ZM_AUTH_TYPE is 'hashed'
+    # the hashing is done by the MySQL 'password()' function
+    #
+    password = __mysql_password_hash(password)
+
+    auth_key = '{0}{1}{2}{3}{4}{5}{6}'.format(
+        auth_hash_secret,
+        username,
+        password,
+        str(timestamp[3]),
+        str(timestamp[2]),
+        str(timestamp[1] - 1),
+        str(timestamp[0] - 2000 + 100)
+    )
+
+    hashcode = hashlib.md5()
+    hashcode.update(auth_key.encode('utf-8'))
+
+    return 'auth={0}'.format(hashcode.hexdigest())
+
+
+def __mysql_password_hash(passwd):
+    """
+    Hash string twice with SHA1 and return uppercase hex digest,
+    prepended with an asterisk.
+
+    This function is identical to the MySQL PASSWORD() function.
+    """
+    pass1 = hashlib.sha1(passwd.encode('utf-8')).digest()
+    pass2 = hashlib.sha1(pass1).hexdigest()
+    return "*" + pass2.upper()
