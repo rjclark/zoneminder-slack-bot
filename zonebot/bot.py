@@ -153,6 +153,9 @@ class ZoneBot(object):
         else:
             words = re.split('\W+', command_string)
 
+        # Remove any blank or empty entries
+        words = [x for x in words if x]
+
         cmd = get_command(words, user_id=user, config=self.config, slack=self.slack_client)
 
         cmd.perform(user_name=user_name, commands=words, zoneminder=self.zoneminder)

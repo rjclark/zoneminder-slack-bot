@@ -20,6 +20,8 @@
 All the commands possible for the bot. This is basically a big routing table.
 """
 
+import zonebot
+
 import logging
 from abc import ABCMeta, abstractmethod
 
@@ -27,9 +29,10 @@ LOGGER = logging.getLogger("zonebot")
 
 
 class Command:
+    """ Static mapping of Slack user IDs to user names """
+
     __metaclass__ = ABCMeta
 
-    """ Static mapping of Slack user IDs to user names """
     _usermap = {}
 
     def __init__(self, config=None):
@@ -150,31 +153,77 @@ class Command:
         return False
 
 
-class Help(Command):
+class About(Command):
+    """
+    Prints about text.
+    """
     def __init__(self, config=None):
-        super(Help, self).__init__(config=config)
+        super(About, self).__init__(config=config)
 
     def perform(self, user_name, commands, zoneminder):
         pass
 
     def report(self, slack, channel):
+        text = "*{0}* version {1}\n".format(zonebot.__project_name__, zonebot.__version__)
+        text += "_Copyright_ (c) 2016 <mailto:{1}|{0}> .".format(zonebot.__author__, zonebot.__email__)
+
         return slack.api_call("chat.postMessage",
                               channel=channel,
-                              text='Help command detected',
+                              text=text,
+                              as_user=True)
+
+
+class Help(Command):
+    """
+    Generates the help test that lists available commands
+    """
+
+    def __init__(self, config=None):
+        super(Help, self).__init__(config=config)
+        self.user_name = None
+        self.config = config
+
+    def perform(self, user_name, commands, zoneminder):
+        self.user_name = user_name
+        pass
+
+    def report(self, slack, channel):
+        text = 'Supported commands\n'
+
+        global _all_commands
+        for command_name in sorted(_all_commands.keys(), key=lambda x: _all_commands[x]['index']):
+            command = _all_commands[command_name]
+
+            if 'meta' in command and command['meta']:
+                continue
+
+            permission = command['permission']
+            if Command.has_permission(self.user_name, self.config, command_name, permission):
+                text += "• _{0}_ : {1}\n".format(command_name, command['help'])
+
+        text += "_{0} version {1}_".format(zonebot.__project_name__, zonebot.__version__)
+
+        return slack.api_call("chat.postMessage",
+                              channel=channel,
+                              text=text,
                               as_user=True)
 
 
 class Unknown(Command):
     def __init__(self, config=None):
         super(Unknown, self).__init__(config=config)
+        self.commands = None
 
     def perform(self, user_name, commands, zoneminder):
-        pass
+        self.commands = ' '.join(commands)
 
     def report(self, slack, channel):
+        text = "_*Error*_: Unrecognized command '{0}'. Use 'help' for a list of supported commands"\
+            .format(self.commands)
+
         return slack.api_call("chat.postMessage",
                               channel=channel,
-                              text='Unknown command detected',
+                              text=text,
                               as_user=True)
 
 
@@ -183,9 +232,11 @@ class Denied(Unknown):
         super(Denied, self).__init__(config=config)
 
     def report(self, slack, channel):
+        text = "_*Error*_: You do not have permission to execute {0}".format(self.commands)
+
         return slack.api_call("chat.postMessage",
                               channel=channel,
-                              text='*Error* You don\'t have permission to execute this command',
+                              text=text,
                               as_user=True)
 
 
@@ -242,54 +293,87 @@ class ToggleMonitor(Command):
                               text='toggle monitor detected',
                               as_user=True)
 
-__all_commands = {
+#
+# meta - true for meta (not user) command that should not show up in the help
+# index - the oder in which the command should be displayed in the help output
+#
+_all_commands = {
     'unknown': {
         'permission': 'any',
-        'classname': Unknown
+        'meta': True,
+        'classname': Unknown,
+        'index': 0
     },
     'help': {
         'permission': 'any',
-        'classname': Help
+        'meta': True,
+        'classname': Help,
+        'index': 0
     },
     'denied': {
         'permission': 'any',
-        'classname': Denied
+        'meta': True,
+        'classname': Denied,
+        'index': 0
+    },
+    'about': {
+        'permission': 'any',
+        'classname': About,
+        'help': 'Display bot version information',
+        'index': 1
     },
     'list monitors': {
         'permission': 'read',
         'help': 'List all monitors and their current state',
-        'classname': ListMonitors
+        'classname': ListMonitors,
+        'index': 2
     },
     'enable monitor': {
         'permission': 'write',
         'help': 'Enable alarms on a monitor (supplied by name, not ID)',
-        'classname': ToggleMonitor
+        'classname': ToggleMonitor,
+        'index': 3
     },
     'disable monitor': {
         'permission': 'write',
         'help': 'Disable alarms on a monitor (supplied by name, not ID)',
-        'classname': ToggleMonitor
+        'classname': ToggleMonitor,
+        'index': 4
     }
 }
 
 
 def get_command(words, user_id=None, config=None, slack=None):
+    """
+    Gets the command that matches the input words.
+
+    :param words: The list of words that make up the command and its arguments.
+    :type words: List[str]
+    :param user_id:
+    :param config:
+    :param slack:
+    :return: The command matching the input. A command is always returned
+    :rtype: Command
+    """
+
+    global _all_commands
+
     if not words or len(words) < 1:
         return Help()
 
     command_text = words[0].strip().lower()
-    if command_text not in __all_commands:
+    if command_text not in _all_commands:
         if len(words) > 1:
             command_text = '{0} {1}'.format(words[0].strip().lower(), words[1].strip().lower())
 
-    if command_text not in __all_commands:
+    if command_text not in _all_commands:
         return Unknown()
 
-    perms = __all_commands[command_text]['permission']
+    perms = _all_commands[command_text]['permission']
     user_name = Command.resolve_user(user_id, slack)
 
     if not Command.has_permission(user_name, config, command_text, perms):
         return Denied()
 
-    return __all_commands[command_text]['classname'](config=config)
+    return _all_commands[command_text]['classname'](config=config)
 

@@ -28,7 +28,9 @@ from zonebot.bot import ZoneBot
 from zonebot import commands, zonebot_get_id, zonebot_alert, zonebot_main
 
 __version__ = '1.0'
-__author__ = 'Robert Clark <clark@exiter.com>'
+__author__ = 'Robert Clark'
+__email__ = "clark@exiter.com"
+__project_name__ = 'ZoneBot'
 
 LOGGER = logging.getLogger("zonebot")
 
