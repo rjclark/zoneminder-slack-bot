@@ -23,6 +23,8 @@ The main BOT class.
 import logging
 import re
 import time
+from pwd import getpwnam
+from grp import getgrnam
 
 from slackclient import SlackClient
 from zonebot.zoneminder import *
@@ -52,13 +54,19 @@ class ZoneBot(object):
         """
 
         run_as_daemon = self.config.getboolean('Runtime', 'daemon', fallback=False)
-        uid = self.config.get('Runtime', 'uid', fallback=None)
-        gid = self.config.get('Runtime', 'gid', fallback=None)
+        uid = self.config.get('Runtime', 'daemon user', fallback=None)
+        gid = self.config.get('Runtime', 'daemon group', fallback=None)
+        pidfile = self.config.get('Runtime', 'daemon pid file', fallback=None)
+
+        if uid:
+            uid = getpwnam(uid)[2]
+        if gid:
+            gid = getgrnam(gid)[2]
 
         if run_as_daemon:
-            LOGGER.info('Start as a daemon process')
+            LOGGER.info('Starting as a daemon process')
             import daemon
-            with daemon.DaemonContext(uid=uid, gid=gid):
+            with daemon.DaemonContext(uid=uid, gid=gid, pidfile=pidfile):
                 self._start()
 
         self._start()
