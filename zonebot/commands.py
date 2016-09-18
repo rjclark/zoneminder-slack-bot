@@ -145,9 +145,9 @@ class Command:
             return True
 
         # No match, not allowed
-        LOGGER.info("User name %s and has access %s. They are not allowed the %s command",
+        LOGGER.info("User %s has access %s. They are not allowed the %s command",
                     user_name,
-                    access,
+                    ', '.join(access),
                     command)
 
         return False
