@@ -182,7 +182,7 @@ class ZoneMinder(object):
             monitor,
             timestamp)
 
-        LOGGER.debug("Loading event metadata from %s" % url)
+        LOGGER.debug("Loading event metadata from %s",  url)
 
         timestamp_request = self.session.get(url=url)
         if timestamp_request.status_code != 200:
@@ -198,7 +198,7 @@ class ZoneMinder(object):
 
         # Make a query for just this ID
         url = "{0}/api/events/{1}.json".format(self.url, event_id)
-        LOGGER.debug("Loading event from %s" % url)
+        LOGGER.debug("Loading event from %s", url)
 
         event_request = self.session.get(url=url)
         if event_request.status_code != 200:

@@ -28,7 +28,7 @@ from grp import getgrnam
 
 from slackclient import SlackClient
 from zonebot.zoneminder.zoneminder import ZoneMinder
-from zonebot.commands import *
+import zonebot.commands
 
 LOGGER = logging.getLogger("zonebot")
 
@@ -148,7 +148,7 @@ class ZoneBot(object):
         :type channel: str
         """
 
-        user_name = Command.resolve_user(user, self.slack_client)
+        user_name = zonebot.commands.Command.resolve_user(user, self.slack_client)
 
         LOGGER.info("Received command '%s' in channel %s from %s",
                     command_string,
@@ -163,10 +163,10 @@ class ZoneBot(object):
         # Remove any blank or empty entries
         words = [x for x in words if x]
 
-        cmd = get_command(words, user_name=user, config=self.config)
+        cmd = zonebot.commands.get_command(words, user_name=user, config=self.config)
 
         cmd.perform(user_name=user_name, commands=words, zoneminder=self.zoneminder)
         result = cmd.report(self.slack_client, user, channel)
 
-        Command.log_slack_result(result)
+        zonebot.commands.Command.log_slack_result(result)
 

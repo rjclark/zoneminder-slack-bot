@@ -241,7 +241,6 @@ class Help(Command):
 
     def perform(self, user_name, commands, zoneminder):
         self.user_name = user_name
-        pass
 
     def report(self, slack, user, channel):
         text = 'Supported commands for <@{0}>\n'.format(user)

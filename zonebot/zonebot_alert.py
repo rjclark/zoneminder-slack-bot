@@ -140,7 +140,5 @@ def zonebot_alert_main():
     else:
         link = 'unknown'
 
-    print(result)
-
     LOGGER.info('Image posted to %s as %s', config['Slack']['channels'], link)
     sys.exit(0)
