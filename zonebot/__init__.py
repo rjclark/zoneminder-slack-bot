@@ -22,6 +22,7 @@ A Slack bot that can communicate and interact with a ZoneMinder security system.
 """
 
 import logging
+from logging.handlers import SysLogHandler
 import os
 
 __version__ = '1.0'
@@ -70,17 +71,52 @@ def init_logging(config=None):
       * the console otherwise
 
     :param config: The configuration for the bot.
+    :type config: configparser.ConfigParser
 
     """
 
-    # TODO: check config.Logging for how we're supposed to log stuff.
-
-    # Basic default console logger for now
     logging.basicConfig(
         format='[%(asctime)s][%(levelname)-5s] %(message)s',
         datefmt='%Y-%m-%d %I:%M:%S %p',
         level=logging.INFO
     )
+
+    if not config:
+        # No config (not loaded yet) basic default console logger for now
+        return
+
+    # See if we're to remove the console logger
+    if not config.getboolean('Logging', 'console', fallback=True):
+        for handler in logging.getLogger().handlers:
+            if isinstance(handler, logging.StreamHandler):
+                logging.getLogger().removeHandler(handler)
+
+    # Check to see if syslog logging is available
+    if config.getboolean('Logging', 'syslog', fallback=False):
+        # Defaults unless overridden
+        server = config.get('Syslog Logging', 'server', fallback='localhost')
+        port = config.getint('Syslog Logging', 'port', fallback=514)
+        facility = config.get('Syslog Logging', 'facility', fallback='daemon')
+        name = config.get('Slack', 'bot_name', fallback=__project_name__)
+
+        address = (server, port)
+        if '/' in server:
+            # An alternative to providing a (host, port) tuple is providing an address
+            # as a string, for example ‘/dev/log’. In this case, a Unix domain socket is
+            # used to send the message to the syslog.
+            address = server
+
+        handler = SysLogHandler(address=address, facility=facility)
+
+        # Handler does not include the process name or PID, we we have to put that in the
+        # message format. It's a bit ugly and I don't know why the standard syslog
+        # class is not used.
+        formatter = logging.Formatter(name + '[%(process)d]: %(message)s')
+        handler.setFormatter(formatter)
+
+        # Add this to the root logger. Hopefully every logger created after this will
+        # inherit this handler
+        logging.getLogger().addHandler(handler)
 
 
 def find_config(command_line_value=None):

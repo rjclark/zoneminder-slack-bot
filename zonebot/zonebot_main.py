@@ -18,8 +18,8 @@ import argparse
 import logging
 import sys
 
-from configparser import ConfigParser
 import zonebot
+from configparser import ConfigParser
 from zonebot.bot import ZoneBot
 
 LOGGER = logging.getLogger("zonebot")
@@ -31,11 +31,12 @@ def zonebot_main():
     """
 
     # basic setup
-    zonebot.init_logging(None)
+    zonebot.init_logging()
 
     #  Set up the command line arguments we support
     parser = argparse.ArgumentParser(description='A Slack bot to interact with ZoneMinder',
-                                     epilog="Version " + zonebot.__version__ + " (c) " + zonebot.__author__)
+                                     epilog="Version " + zonebot.__version__ +
+                                            " (c) " + zonebot.__author__)
 
     parser.add_argument('-c', '--config',
                         metavar='file',
@@ -61,11 +62,14 @@ def zonebot_main():
     # Reconfigure logging with config values
     zonebot.init_logging(config)
 
-    LOGGER.info("Starting up")
     LOGGER.info("Version %s", zonebot.__version__)
 
     bot_process = ZoneBot(config)
-    bot_process.start()
+
+    try:
+        bot_process.start()
+    except KeyboardInterrupt:
+        sys.exit(0)
 
 
 
