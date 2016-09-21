@@ -25,6 +25,14 @@ from zonebot.bot import ZoneBot
 LOGGER = logging.getLogger("zonebot")
 
 
+def uncaught_exception_handler(exctype, value, traceback):
+    """
+    Logs all uncaught exceptions
+    """
+
+    LOGGER.error("Unhandled exception", exc_info=(exctype, value, traceback))
+
+
 def zonebot_main():
     """
     Main method for the zonebot script
@@ -32,6 +40,9 @@ def zonebot_main():
 
     # basic setup
     zonebot.init_logging()
+
+    # Install exception handler
+    sys.excepthook = uncaught_exception_handler
 
     #  Set up the command line arguments we support
     parser = argparse.ArgumentParser(description='A Slack bot to interact with ZoneMinder',
@@ -69,7 +80,6 @@ def zonebot_main():
     try:
         bot_process.start()
     except KeyboardInterrupt:
-        sys.exit(0)
-
-
-
+        pass
+    finally:
+        LOGGER.info("Shutting down")
