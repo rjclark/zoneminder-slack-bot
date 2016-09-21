@@ -1,19 +1,11 @@
 # ZoneMinder Slack Bot
 
-This is a [Slack Bot](https://api.slack.com/bot-users) that monitors one or
-more [Slack](https://slack.com) channels for commands and interacts with
-a [ZoneMinder](https://www.zoneminder.com/) system to report events and
+This is a [Slack Bot](https://api.slack.com/bot-users) that monitors one or more [Slack](https://slack.com) channels for commands and interacts with a [ZoneMinder](https://www.zoneminder.com/) system to report events and
 obtain information.
 
-The primary use for this bot is to allow access to some parts of a ZoneMinder
-system that is behind a firewall, without having to expose the actual system
-to the Internet. Making a ZoneMinder system available to the Internet has
-several requirements (static IP, secure system) that may not be feasible for all
-users.
+The primary use for this bot is to allow access to some parts of a ZoneMinder system that is behind a firewall, without having to expose the actual system to the Internet. Making a ZoneMinder system available to the Internet has several requirements (static IP, secure system) that may not be feasible for all users.
 
-By providing a bot that can interact with both ZoneMinder and Slack, remote
-access to and notification from ZoneMinder is possible, without needing a static
-IP and using the security provided by the Slack environment.
+By providing a bot that can interact with both ZoneMinder and Slack, remote access to and notification from ZoneMinder is possible, without needing a static IP and using the security provided by the Slack environment.
 
 ## Installation
 
@@ -22,8 +14,8 @@ IP and using the security provided by the Slack environment.
 The easiest method of installation is via `pip` as the package is available
 from the [Python Package Index](https://pypi.python.org/pypi)
 
-```
-pip install zonebot
+```sh
+> pip install zonebot
 ```    
 
 This will create a script called `zonebot` in your path ("`which zonebot`" will tell
@@ -39,9 +31,7 @@ You can download the source from GitHub and build it yourself if you would like.
 
 ### Clone the source and build
 
-You can also clone the source from GitHub if you would like to build the very latest
-version. **This is not guaranteed to work**. The unreleased source code from GitHub could be in
-the middle of development and running it directly is not recommended.
+You can also clone the source from GitHub if you would like to build the very latest version. **This is not guaranteed to work**. The unreleased source code from GitHub could be in the middle of development and running it directly is not recommended.
 
 1. Clone this repository https://github.com/rjclark/zoneminder-slack-bot
 1. Run `python setup.py build install`
@@ -63,17 +53,14 @@ if needed.
 To configure the bot, you will need several pieces of information
 
 1. Your Slack API token. This can be found by
-    1. Going to the [Slack Bot user page](https://api.slack.com/bot-users) and creating
-       a new bot user. You will have a chance to get the API token here
+    1. Going to the [Slack Bot user page](https://api.slack.com/bot-users) and creating a new bot user. You will have a chance to get the API token here
     2. Going to the page for your [existing bot user](https://my.slack.com/apps/manage/custom-integrations).
 2. The User ID of your bot user. This can be found by:
-    1. Running the script `zonebot-getid` distributed with this package and providing
-       the name of the Slack bot user and you Slack API token as command line options.
-       For example:
+    1. Running the script `zonebot-getid` distributed with this package and providing the name of the Slack bot user and you Slack API token as command line options. For example:
 
-```
-        zonebot-getid  -a "your-slack-token" -b zoneminder
-        User ID for bot 'zoneminder' is AA22BB44C
+```sh
+> zonebot-getid  -a "your-slack-token" -b zoneminder
+> User ID for bot 'zoneminder' is AA22BB44C
 ```
 
 Once you have those, make a copy of the config file and add the Slack API token and user ID of the bot, You will also want to edit the `Permissions` section.

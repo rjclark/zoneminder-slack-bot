@@ -27,24 +27,30 @@ Setup
 
 1. Use `virtualenv` and `pip` to create a development
 
-    \# virtualenv venv
-    \# source venv/bin/activate
-    (or . venv/bin/activate.fish of you use the fish shell)
+	```sh
+	> virtualenv venv
+	> source venv/bin/activate
+	    (or . venv/bin/activate.fish of you use the fish shell)
 
-    \# venv/bin/pip install install -r requirements.txt
+	> venv/bin/pip install install -r requirements.txt
+	```
 
 2. Obtain a Slack API token (and optionally create a dedicated [bot user](https://api.slack.com/bot-users) for the API token) from Slack
 
 3. Since the API token needs to remain secret, you should set it as an environment
 variable rather than putting it into any source file.
 
-    \# export SLACK_BOT_TOKEN='your slack token pasted here'
+    ```sh
+    > export SLACK_BOT_TOKEN='your slack token pasted here'
+    ```
 
 4. Run `utils/get_bot_id.py` to get the number ID of the bot (as opposed to the nameyou gave the bot user. This is also our first real test of the API token
 
 5. Put the bot ID into a n environment variable as well.
 
-    \# export BOT_ID='bot id returned by script'
+    ```sh
+    > export BOT_ID='bot id returned by script'
+    ```
 
 Later on the BOT_ID and SLACK_API_TOKEN (along with a lot of the other config options
 will be loaded from a config file. This is to make running the script as a daemon less of
