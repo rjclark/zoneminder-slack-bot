@@ -221,12 +221,10 @@ class Status(Command):
         #
         # Disk usage. This very, ***VERY*** often times out and is currently disabled.
         #
-        """
-        gb = 1024 * 1024 * 1024
-        for usage in self.status['usage']:
-            text += '• _{0} monitor disk usage_: {1}\n'\
-                .format(usage['name'], humansize(usage['space'] * gb))
-        """
+        # gb = 1024 * 1024 * 1024
+        # for usage in self.status['usage']:
+        #     text += '• _{0} monitor disk usage_: {1}\n'\
+        #         .format(usage['name'], humansize(usage['space'] * gb))
 
         return slack.api_call("chat.postMessage",
                               channel=channel,

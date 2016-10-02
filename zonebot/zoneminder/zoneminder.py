@@ -56,7 +56,7 @@ class ZoneMinder(object):
             url = url[:-1]
 
         self.url = url
-        LOGGER.debug("Base url is %s" % self.url)
+        LOGGER.debug("Base url is %s", self.url)
 
         self.config = config
 
@@ -140,22 +140,20 @@ class ZoneMinder(object):
         # Disk usage. This very, ***VERY*** often times out and is currently disabled.
         #
         status['usage'] = []
-        """
-        url = "{0}/api/host/getDiskPercent.json".format(self.url)
-        response = self.session.get(url=url)
-        if response.status_code != 200:
-            status['usage'] = 'Could not obtain disk usage status. Response code {0}' \
-                .format(response.status_code)
-        else:
-            data = json.loads(response.text)
-            for u in data['usage']:
-                if 'Total' == u:
-                    continue
-                status['usage'].append({
-                    'name': u,
-                    'space': float(data['usage'][u]['space'])
-                })
-        """
+        # url = "{0}/api/host/getDiskPercent.json".format(self.url)
+        # response = self.session.get(url=url)
+        # if response.status_code != 200:
+        #     status['usage'] = 'Could not obtain disk usage status. Response code {0}' \
+        #         .format(response.status_code)
+        # else:
+        #     data = json.loads(response.text)
+        #     for u in data['usage']:
+        #         if 'Total' == u:
+        #             continue
+        #         status['usage'].append({
+        #             'name': u,
+        #             'space': float(data['usage'][u]['space'])
+        #         })
 
         return status
 
@@ -268,7 +266,8 @@ class ZoneMinder(object):
         # zms is defined as the full path from the host so we should be able to reconstruct
         # from the URL.
 
-        scheme, netloc, path, params, query, fragment = requests.utils.urlparse(self.url)
+        # path, params, query, fragment ignored
+        scheme, netloc = requests.utils.urlparse(self.url)[0:2]
 
         auth = _build_login_hash(self.config)
 
