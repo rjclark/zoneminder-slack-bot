@@ -137,15 +137,16 @@ class ZoneMinder(object):
             status['load'] = '/'.join(map(str, data['load']))
 
         #
-        # Disk usage
+        # Disk usage. This very, ***VERY*** often times out and is currently disabled.
         #
+        status['usage'] = []
+        """
         url = "{0}/api/host/getDiskPercent.json".format(self.url)
         response = self.session.get(url=url)
         if response.status_code != 200:
-            status['disk'] = 'Could not obtain disk usage status. Response code {0}' \
+            status['usage'] = 'Could not obtain disk usage status. Response code {0}' \
                 .format(response.status_code)
         else:
-            status['usage'] = []
             data = json.loads(response.text)
             for u in data['usage']:
                 if 'Total' == u:
@@ -154,6 +155,7 @@ class ZoneMinder(object):
                     'name': u,
                     'space': float(data['usage'][u]['space'])
                 })
+        """
 
         return status
 
