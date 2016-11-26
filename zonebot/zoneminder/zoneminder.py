@@ -26,6 +26,7 @@ from io import BytesIO
 
 import requests
 from zonebot.zoneminder.monitors import Monitors
+from zonebot.zoneminder.session import Session
 
 LOGGER = logging.getLogger("zoneminder")
 
@@ -36,6 +37,10 @@ class ZoneMinder(object):
 
     The associated HTTP session, and all actions, are not available until `login` is called.
     """
+
+    # The default session timeout in ZoneMinder (specifically the Cake PHP library it
+    # uses) is 120 seconds.
+    __default_session_timeout = 100
 
     def __init__(self, config):
         """
@@ -69,23 +74,10 @@ class ZoneMinder(object):
         Creates a new session by logging into the ZoneMinder system
         """
 
-        self.session = requests.Session()
-
-        params = {
-            "username": self.config.get('ZoneMinder', 'username', fallback=''),
-            "password": self.config.get('ZoneMinder', 'password', fallback=''),
-            "action": "login",
-            "view": "console"
-        }
-
-        # If successful, a cookie will be added to the session  (called ZMSESSID)
-        # which we can use for a limited time to provide to the server that we have
-        # already logged in.
-        login_request = self.session.post(self.url + '/', data=params)
-
-        if login_request.status_code != 200:
-            raise Exception("Could not log into %s response code %d" %
-                            (self.url, login_request.status_code))
+        self.session = Session(self.config.get('ZoneMinder', 'username', fallback=''),
+                               self.config.get('ZoneMinder', 'password', fallback=''),
+                               self.url,
+                               self.__default_session_timeout)
 
         # extra classes for the various components of ZoneMinder
         self.monitors = Monitors(self.session, self.url)
