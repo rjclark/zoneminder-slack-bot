@@ -18,7 +18,6 @@ import os
 from nose.tools import assert_equal
 import zonebot
 import logging
-import json
 
 from configparser import ConfigParser
 
@@ -36,7 +35,7 @@ def test_empty_config():
 
 
 def test_example_config_valid():
-    example_config = os.path.join(os.path.dirname(__file__), "..", "docs", "zonebot-example-config.cfg")
+    example_config = os.path.join(os.path.dirname(__file__), "..", "etc", "zonebot-example-config.cfg")
 
     assert os.path.isfile(example_config)
 
@@ -47,7 +46,7 @@ def test_example_config_valid():
 
 
 def test_url_fixes():
-   example_config = os.path.join(os.path.dirname(__file__), "..", "docs", "zonebot-example-config.cfg")
+   example_config = os.path.join(os.path.dirname(__file__), "..", "etc", "zonebot-example-config.cfg")
    config = ConfigParser()
    config.read(example_config)
 
@@ -74,7 +73,7 @@ def test_no_config_file():
 
 
 def test_command_line_config_file():
-    example_config = os.path.join(os.path.dirname(__file__), "..", "docs", "zonebot-example-config.cfg")
+    example_config = os.path.join(os.path.dirname(__file__), "..", "etc", "zonebot-example-config.cfg")
 
     assert os.path.isfile(example_config)
 

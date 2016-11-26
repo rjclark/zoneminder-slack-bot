@@ -35,7 +35,7 @@ def test_create():
 def __load_config():
     example_config = os.path.join(os.path.dirname(__file__),
                                   "..",
-                                  "docs",
+                                  "etc",
                                   "zonebot-example-config.cfg")
 
     config = ConfigParser()
