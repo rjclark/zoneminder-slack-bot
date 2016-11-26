@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="ZoneBot - ZoneMinder Slack bot : A Slack bot that interacts with a ZoneMinder security system">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>ZoneBot - ZoneMinder Slack bot</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/rjclark/zoneminder-slack-bot">View on GitHub</a>
+
+          <h1 id="project_title">ZoneBot - ZoneMinder Slack bot</h1>
+          <h2 id="project_tagline">A Slack bot that interacts with a ZoneMinder security system</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/rjclark/zoneminder-slack-bot/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/rjclark/zoneminder-slack-bot/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a id="zoneminder-slack-bot" class="anchor" href="#zoneminder-slack-bot" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ZoneMinder Slack Bot</h1>
+
+<p>This is a <a href="https://api.slack.com/bot-users">Slack Bot</a> that monitors one or more <a href="https://slack.com">Slack</a> channels for commands and interacts with a <a href="https://www.zoneminder.com/">ZoneMinder</a> system to report events and
+obtain information.</p>
+
+<p>The primary use for this bot is to allow access to some parts of a ZoneMinder system that is behind a firewall, without having to expose the actual system to the Internet. Making a ZoneMinder system available to the Internet has several requirements (static IP, secure system) that may not be feasible for all users.</p>
+
+<p>By providing a bot that can interact with both ZoneMinder and Slack, remote access to and notification from ZoneMinder is possible, without needing a static IP and using the security provided by the Slack environment.</p>
+
+<h2>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation</h2>
+
+<h3>
+<a id="easiest--using-pip" class="anchor" href="#easiest--using-pip" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Easiest : Using pip</h3>
+
+<p>The easiest method of installation is via <code>pip</code> as the package is available from the <a href="https://pypi.python.org/pypi">Python Package Index</a></p>
+
+<div class="highlight highlight-source-shell"><pre><span class="pl-k">&gt;</span> pip install zonebot</pre></div>
+
+<p>This will create a script called <code>zonebot</code> in your path ("<code>which zonebot</code>" will tell you exactly where) that you can run.</p>
+
+<h3>
+<a id="download-source-and-build" class="anchor" href="#download-source-and-build" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Download source and build</h3>
+
+<p>You can download the source from GitHub and build it yourself if you would like.</p>
+
+<ol>
+<li>Download the release you want from <a href="https://github.com/rjclark/zoneminder-slack-bot/releases">https://github.com/rjclark/zoneminder-slack-bot/releases</a>
+</li>
+<li>Extract it</li>
+<li>Run <code>python setup.py build install</code>
+</li>
+</ol>
+
+<h3>
+<a id="clone-the-source-and-build" class="anchor" href="#clone-the-source-and-build" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Clone the source and build</h3>
+
+<p>You can also clone the source from GitHub if you would like to build the very latest version. <strong>This is not guaranteed to work</strong>. The unreleased source code from GitHub could be in the middle of development and running it directly is not recommended.</p>
+
+<ol>
+<li>Clone this repository <a href="https://github.com/rjclark/zoneminder-slack-bot">https://github.com/rjclark/zoneminder-slack-bot</a>
+</li>
+<li>Run <code>python setup.py build install</code>
+</li>
+</ol>
+
+<h2>
+<a id="configuration" class="anchor" href="#configuration" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Configuration</h2>
+
+<p>Also installed is a sample configuration file called <code>zonebot-example-config.cfg</code>. You can copy this to your preferred location for config files and edit it to put in your <a href="https://api.slack.com/tokens">Slack API token</a> and the <a href="https://api.slack.com/bot-users">ID of your bot user</a></p>
+
+<p>The example configuration file is installed into the Python package directory on your system, which can be somewhat difficult to find. The latest version of the file is always available from <a href="https://github.com/rjclark/zoneminder-slack-bot/blob/master/docs/zonebot-example-config.cfg">the GitHub repository</a> if needed.</p>
+
+<p>To configure the bot, you will need several pieces of information</p>
+
+<ol>
+<li>Your Slack API token. This can be found by
+
+<ol>
+<li>Going to the <a href="https://api.slack.com/bot-users">Slack Bot user page</a> and creating a new bot user. You will have a chance to get the API token here</li>
+<li>Going to the page for your <a href="https://my.slack.com/apps/manage/custom-integrations">existing bot user</a>.</li>
+</ol>
+</li>
+<li>The User ID of your bot user. This can be found by:
+
+<ol>
+<li>Running the script <code>zonebot-getid</code> distributed with this package and providing the name of the Slack bot user and you Slack API token as command line options. For example:</li>
+</ol>
+</li>
+</ol>
+
+<div class="highlight highlight-source-shell"><pre><span class="pl-k">&gt;</span> zonebot-getid  -a <span class="pl-s"><span class="pl-pds">"</span>your-slack-token<span class="pl-pds">"</span></span> -b zoneminder
+<span class="pl-k">&gt;</span> User ID <span class="pl-k">for</span> bot <span class="pl-s"><span class="pl-pds">'</span>zoneminder<span class="pl-pds">'</span></span> is AA22BB44C</pre></div>
+
+<p>Once you have those, make a copy of the config file and add the Slack API token and user ID of the bot, You will also want to edit the <code>Permissions</code> section.</p>
+
+<p><strong>NOTE</strong>: The default config file allows only read permission to the ZoneMinder system.</p>
+
+<p>The default config file can be placed in any of these locations (checked in this order)</p>
+
+<ul>
+<li>Any file specified by the <code>-c/--config</code> command line option</li>
+<li>
+<code>$XDG_CONFIG_HOME/zonebot/zonebot.conf</code> if the <code>XDG_CONFIG_HOME</code> environment variable is defined</li>
+<li>
+<code>${DIR}/zonebot/zonebot.conf</code> for any directory in the <code>XDG_CONFIG_DIRS</code> environment variable</li>
+<li><code>~/.config/zonebot/zonebot.conf</code></li>
+<li><code>/etc/zonebot/zonebot.conf</code></li>
+<li><code>/etc/default/zonebot</code></li>
+</ul>
+
+<h2>
+<a id="reporting-problems" class="anchor" href="#reporting-problems" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Reporting Problems</h2>
+
+<ol>
+<li>The best way to report problems is to log a report on the GitHub Issues page <a href="https://github.com/rjclark/zoneminder-slack-bot/issues">https://github.com/rjclark/zoneminder-slack-bot/issues</a> for this project. </li>
+<li>If you do not have a GItHub account, you can also contact me via email: <a href="mailto:clark@exiter.com">clark@exiter.com</a>
+</li>
+</ol>
+
+<h2>
+<a id="building-and-contributing" class="anchor" href="#building-and-contributing" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Building and Contributing</h2>
+
+<p>If you wish to contribute, pull requests against the <a href="https://github.com/rjclark/zoneminder-slack-bot">GitHub repository</a> are welcomed.</p>
+
+<p><a href="https://travis-ci.org/rjclark/zoneminder-slack-bot"><img src="https://travis-ci.org/rjclark/zoneminder-slack-bot.svg?branch=master" alt="Build Status"></a>
+<a href="https://coveralls.io/github/rjclark/zoneminder-slack-bot?branch=master"><img src="https://coveralls.io/repos/github/rjclark/zoneminder-slack-bot/badge.svg?branch=master" alt="Coverage Status"></a>
+<a href="https://pypi.python.org/pypi/zonebot"><img src="https://badge.fury.io/py/zonebot.svg" alt="PyPI version"></a>
+<a href="https://www.versioneye.com/user/projects/57def689037c2000458f770d"><img src="https://www.versioneye.com/user/projects/57def689037c2000458f770d/badge.svg?style=flat-square" alt="Dependency Status"></a>
+<a href="https://landscape.io/github/rjclark/zoneminder-slack-bot/master"><img src="https://landscape.io/github/rjclark/zoneminder-slack-bot/master/landscape.svg?style=flat" alt="Code Health"></a></p>
+
+<h3>
+<a id="requirements-and-tools" class="anchor" href="#requirements-and-tools" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Requirements and Tools</h3>
+
+<p>If you are new to the concept of building either a Python application or a Slack bot, I encourage you to review the excellent posting over at <a href="https://www.fullstackpython.com">Full Stack Python</a> called
+<a href="https://www.fullstackpython.com/blog/build-first-slack-bot-python.html">How to Build Your First Slack Bot with Python</a>. This document will provide a summary of the requirements and steps necessary, but it assumes a basica familiarity with the tools and environment that the linked article covers in some depth.</p>
+
+<p>This list of tools from the <a href="https://www.fullstackpython.com/blog/build-first-slack-bot-python.html">First Slack Bot</a> blog is all that is needed to build this bot.</p>
+
+<blockquote>
+<ul>
+<li>Either <a href="https://wiki.python.org/moin/Python2orPython3">Python 2 or 3</a>
+</li>
+<li>
+<a href="https://pip.pypa.io/en/stable/">pip</a> and <a href="https://virtualenv.pypa.io/%3E%20en/stable/">virtualenv</a> to handle Python application dependencies</li>
+<li>A <a href="https://slack.com/">Slack account</a> with a team on which you have API access.</li>
+<li>Official Python <a href="https://github.com/slackhq/python-slackclient">slackclient</a> code library built by the Slack team</li>
+<li><a href="https://api.slack.com/tokens">Slack API testing token</a></li>
+</ul>
+
+<p>It is also useful to have the <a href="https://api.slack.com/">Slack API docs</a> handy while you're building this tutorial.</p>
+</blockquote>
+
+<h3>
+<a id="setup" class="anchor" href="#setup" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Setup</h3>
+
+<ol>
+<li>Use <code>virtualenv</code> and <code>pip</code> to create a development</li>
+</ol>
+
+<div class="highlight highlight-source-shell"><pre><span class="pl-k">&gt;</span> virtualenv venv
+<span class="pl-k">&gt;</span> <span class="pl-c1">source</span> venv/bin/activate
+    (or <span class="pl-c1">.</span> venv/bin/activate.fish of you use the fish shell)
+
+<span class="pl-k">&gt;</span> venv/bin/pip install install -r requirements.txt</pre></div>
+
+<ol>
+<li><p>Obtain a Slack API token (and optionally create a dedicated <a href="https://api.slack.com/bot-users">bot user</a> for the API token) from Slack</p></li>
+<li><p>Since the API token needs to remain secret, you should set it as an environment
+variable rather than putting it into any source file.</p></li>
+</ol>
+
+<div class="highlight highlight-source-shell"><pre><span class="pl-k">&gt;</span> <span class="pl-k">export</span> SLACK_BOT_TOKEN=<span class="pl-s"><span class="pl-pds">'</span>your slack token pasted here<span class="pl-pds">'</span></span></pre></div>
+
+<ol>
+<li><p>Run <code>utils/get_bot_id.py</code> to get the number ID of the bot (as opposed to the name you gave the bot user. This is also our first real test of the API token</p></li>
+<li><p>Put the bot ID into an environment variable as well.</p></li>
+</ol>
+
+<div class="highlight highlight-source-shell"><pre><span class="pl-k">&gt;</span> <span class="pl-k">export</span> BOT_ID=<span class="pl-s"><span class="pl-pds">'</span>bot id returned by script<span class="pl-pds">'</span></span></pre></div>
+
+<p>Later on the BOT_ID and SLACK_API_TOKEN (along with a lot of the other config options) will be loaded from a config file. This is to make running the script as a daemon less of a hassle.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">ZoneBot - ZoneMinder Slack bot maintained by <a href="https://github.com/rjclark">rjclark</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
