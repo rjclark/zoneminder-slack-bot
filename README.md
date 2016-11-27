@@ -7,7 +7,7 @@ The primary use for this bot is to allow access to some parts of a ZoneMinder sy
 
 By providing a bot that can interact with both ZoneMinder and Slack, remote access to and notification from ZoneMinder is possible, without needing a static IP and using the security provided by the Slack environment.
 
-[![Screen cast of basic features](https://raw.githubusercontent.com/rjclark/zoneminder-slack-bot/master/docs/images/ZoneBot-Screen-Cast-Static.png)](https://raw.githubusercontent.com/rjclark/zoneminder-slack-bot/master/docs/images/ZoneBot-Screen-Cast.webm)
+[![Screen cast of basic features](https://raw.githubusercontent.com/rjclark/zoneminder-slack-bot/master/docs/images/ZoneBot-Screen-Cast-Static.png)](https://rjclark.github.io/zoneminder-slack-bot/docs/images/ZoneBot-Screen-Cast.webm)
 
 ## Installation
 
