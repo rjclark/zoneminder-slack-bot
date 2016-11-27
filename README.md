@@ -1,13 +1,17 @@
-# ZoneMinder Slack Bot
+# ZoneBot - A ZoneMinder Slack Bot
 
-This is a [Slack Bot](https://api.slack.com/bot-users) that monitors one or more [Slack](https://slack.com) channels for commands and interacts with a [ZoneMinder](https://www.zoneminder.com/) system to report events and
-obtain information.
+This is a [Slack Bot](https://api.slack.com/bot-users) that monitors one or more [Slack](https://slack.com) channels for commands and interacts with a [ZoneMinder](https://www.zoneminder.com/) system to report events and obtain information.
+
+There are two parts to the project
+
+1. A script that is invoked by ZoneMinder whenever an event/alarm is detected (`zonebot-alert`). This will post a message with the most significant frame of the event to a specified Slack channel. 
+![ZoneBot posting an event](https://raw.githubusercontent.com/rjclark/zoneminder-slack-bot/master/docs/images/ZoneBot-Post-Event.png) 
+2. A bot that listens in a Slack channel for commands from approved users and passes them along to the ZoneMinder server. 
+[![Screen cast of basic features](https://raw.githubusercontent.com/rjclark/zoneminder-slack-bot/master/docs/images/ZoneBot-Screen-Cast-Static.png)](https://rjclark.github.io/zoneminder-slack-bot/docs/images/ZoneBot-Screen-Cast.webm)
 
 The primary use for this bot is to allow access to some parts of a ZoneMinder system that is behind a firewall, without having to expose the actual system to the Internet. Making a ZoneMinder system available to the Internet has several requirements (static IP, secure system) that may not be feasible for all users.
 
-By providing a bot that can interact with both ZoneMinder and Slack, remote access to and notification from ZoneMinder is possible, without needing a static IP and using the security provided by the Slack environment.
-
-[![Screen cast of basic features](https://raw.githubusercontent.com/rjclark/zoneminder-slack-bot/master/docs/images/ZoneBot-Screen-Cast-Static.png)](https://rjclark.github.io/zoneminder-slack-bot/docs/images/ZoneBot-Screen-Cast.webm)
+By providing a bot that can interact with both ZoneMinder and Slack, remote access to and notification from ZoneMinder is possible, without needing a static IP. The security and authentication provided by the Slack environment is used to control access to the script, and the bot also has a permissions section in it's configuration that controls which users are allowed which actions.
 
 ## Installation
 
@@ -38,6 +42,8 @@ You can also clone the source from GitHub if you would like to build the very la
 
 ## Configuration
 
+### Bot Configuration
+
 Also installed is a sample configuration file called `zonebot-example-config.cfg`. You can copy this to your preferred location for config files and edit it to put in your [Slack API token](https://api.slack.com/tokens) and the [ID of your bot user](https://api.slack.com/bot-users)
 
 The example configuration file is installed into the Python package directory on your system, which can be somewhat difficult to find. The latest version of the file is always available from [the GitHub repository](https://github.com/rjclark/zoneminder-slack-bot/blob/master/docs/zonebot-example-config.cfg) if needed.
@@ -59,6 +65,14 @@ Once you have those, make a copy of the config file and add the Slack API token 
 
 **NOTE**: The default config file allows only read permission to the ZoneMinder system.
 
+### ZoneMinder Configuration
+
+If you want ZoneMinder events posted to Slack as they occur, you must define a ZoneMinder filter that invokes the `zonebot-alert` script. The script gets all required configuration information from the same config file as the bot.
+
+![Defining a ZoneMinder filter](https://raw.githubusercontent.com/rjclark/zoneminder-slack-bot/master/docs/images/ZoneBot-Define-Filter.png)
+
+### Config File Locations
+
 The default config file can be placed in any of these locations (checked in this order)
 
 * Any file specified by the `-c/--config` command line option
@@ -75,7 +89,7 @@ The default config file can be placed in any of these locations (checked in this
 
 ## Building and Contributing
 
-If you wish to contribute, pull requests against the [GitHub repository](https://github.com/rjclark/zoneminder-slack-bot) are welcomed.
+If you wish to contribute, pull requests against the [GitHub repository](https://github.com/rjclark/zoneminder-slack-bot), `master` branch, are welcomed.
 
 [![Build Status](https://travis-ci.org/rjclark/zoneminder-slack-bot.svg?branch=master)](https://travis-ci.org/rjclark/zoneminder-slack-bot)
 [![Coverage Status](https://coveralls.io/repos/github/rjclark/zoneminder-slack-bot/badge.svg?branch=master)](https://coveralls.io/github/rjclark/zoneminder-slack-bot?branch=master)
