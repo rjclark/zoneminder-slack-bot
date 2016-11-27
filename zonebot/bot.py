@@ -23,6 +23,7 @@ The main BOT class.
 import logging
 import re
 import time
+import os
 from pwd import getpwnam
 from grp import getgrnam
 
@@ -59,13 +60,27 @@ class ZoneBot(object):
         pidfile = self.config.get('Runtime', 'daemon pid file', fallback=None)
 
         if uid:
-            uid = getpwnam(uid)[2]
+            uid = getpwnam(uid).pw_uid
         if gid:
-            gid = getgrnam(gid)[2]
+            gid = getgrnam(gid).gr_gid
 
         if run_as_daemon:
             LOGGER.info('Starting as a daemon process')
             import daemon
+            import daemon.pidfile
+
+            if pidfile:
+                # We need to create the enclosing directory (if it does not exist) before
+                # starting the daemon context as we might lose the permissions to create
+                # that directory
+                piddir = os.path.dirname(pidfile)
+                if not os.path.isdir(piddir):
+                    os.makedirs(piddir, 0o0755)
+                    os.chown(piddir, uid, gid)
+
+                # Convert the filename to the appropriate type for the deamon module.
+                pidfile = daemon.pidfile.TimeoutPIDLockFile(pidfile)
+
             with daemon.DaemonContext(uid=uid, gid=gid, pidfile=pidfile):
                 self._start()
 

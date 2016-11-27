@@ -44,6 +44,7 @@ the security provided by the Slack environment.''',
 
     packages=[
         'zonebot',  # this must be the same as the name above
+        'zonebot.zoneminder'
     ],
     package_dir={
         'zonebot': 'zonebot',
