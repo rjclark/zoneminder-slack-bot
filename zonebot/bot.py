@@ -178,10 +178,14 @@ class ZoneBot(object):
         # Remove any blank or empty entries
         words = [x for x in words if x]
 
-        cmd = zonebot.commands.get_command(words, user_name=user_name, config=self.config)
+        start_time = time.time()
 
+        cmd = zonebot.commands.get_command(words, user_name=user_name, config=self.config)
         cmd.perform(user_name=user_name, commands=words, zoneminder=self.zoneminder)
         result = cmd.report(self.slack_client, user_name, channel)
+
+        duration = time.time() - start_time
+        LOGGER.debug("Completed command '%s' in %f seconds", command_string, duration)
 
         zonebot.commands.Command.log_slack_result(result)
 
