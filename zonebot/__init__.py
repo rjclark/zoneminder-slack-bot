@@ -118,6 +118,10 @@ def init_logging(config=None):
         # inherit this handler
         logging.getLogger().addHandler(handler)
 
+    # Update the log level from config
+    level_name = config.get('Logging', 'level', fallback='info').upper()
+    logging.getLogger().setLevel(level_name)
+
 
 def find_config(command_line_value=None):
     """
