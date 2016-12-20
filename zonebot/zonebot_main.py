@@ -14,6 +14,11 @@
 #   limitations under the License.
 #
 
+"""
+Main server process that listens to a Slack channel for user commands and then
+processes them.
+"""
+
 import argparse
 import logging
 import sys
@@ -47,7 +52,8 @@ def zonebot_main():
     #  Set up the command line arguments we support
     parser = argparse.ArgumentParser(description='A Slack bot to interact with ZoneMinder',
                                      epilog="Version " + zonebot.__version__ +
-                                            " (c) " + zonebot.__author__)
+                                            " (c) " + zonebot.__author__ +
+                                            " (" + zonebot.__email__ + ")")
 
     parser.add_argument('-c', '--config',
                         metavar='file',

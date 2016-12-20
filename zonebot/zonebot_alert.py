@@ -14,6 +14,11 @@
 #   limitations under the License.
 #
 
+"""
+Called by ZoneMinder whenever an alert is generated. It find the most important frame
+ and posts it to Slack.
+"""
+
 import argparse
 import logging
 import sys
@@ -27,18 +32,44 @@ from zonebot.zoneminder.zoneminder import ZoneMinder
 LOGGER = logging.getLogger("zonebot")
 
 
+def _parse_directory_name(dirname):
+    elements = zonebot.split_os_path(dirname)
+
+    # Array will contain a variable number of leading elements
+    # but always ends with:
+    #   monitor/yy/mm/d/hh/mm/ss
+    # we split that to
+    #   monitor id
+    # and
+    #   yyyy-mm-dd hh:mm:ss
+
+    idx = -7
+    if elements[-1] == '':
+        # Just in case the path ends with a '/'
+        idx = -8
+
+    monitor = elements[idx]
+    timestamp = "20" + elements[idx + 1] + "-" + elements[idx + 2] + "-" + elements[idx + 3] + \
+                " " + \
+                elements[idx + 4] + ":" + elements[idx + 5] + ":" + elements[idx + 6]
+
+    return monitor, timestamp
+
+
 def zonebot_alert_main():
     """
     Main method for the zonebot-alert script
     """
 
     # basic setup
-    zonebot.init_logging(None)
+    zonebot.init_logging()
 
     #  Set up the command line arguments we support
     parser = argparse.ArgumentParser(
         description='A script that receives event notifications from ZoneMinder',
-        epilog="Version " + zonebot.__version__ + " (c) " + zonebot.__author__)
+        epilog="Version " + zonebot.__version__ + " (c) " +
+               zonebot.__author__ +
+               " (" + zonebot.__email__ + ")")
 
     parser.add_argument('event_dir',
                         help='The directory in which the event files are stored')
@@ -65,25 +96,7 @@ def zonebot_alert_main():
     # Reconfigure logging with config values
     zonebot.init_logging(config)
 
-    elements = zonebot.split_os_path(args.event_dir)
-
-    # Array will contain a variable number of leading elements
-    # but always ends with:
-    #   monitor/yy/mm/d/hh/mm/ss
-    # we split that to
-    #   monitor id
-    # and
-    #   yyyy-mm-dd hh:mm:ss
-
-    idx = -7
-    if elements[-1] == '':
-        # Just in case the path ends with a '/'
-        idx = -8
-
-    monitor = elements[idx]
-    timestamp = "20" + elements[idx+1] + "-" + elements[idx+2] + "-" + elements[idx+3] + " " + \
-                elements[idx+4] + ":" + elements[idx+5] + ":" + elements[idx+6]
-
+    (monitor, timestamp) = _parse_directory_name(args.event_dir)
     LOGGER.info("Sending alert about event at %s on monitor %s", timestamp, monitor)
 
     zone_minder = ZoneMinder(config)
@@ -116,8 +129,7 @@ def zonebot_alert_main():
                             filename=filename,
                             channels=config['Slack']['channels'],
                             # Note: this is broken in slackclient 1.0.1 and earlier
-                            file=open(image_filename, 'rb')
-                            )
+                            file=open(image_filename, 'rb'))
 
     if not result:
         LOGGER.error("Could not complete Slack API call")

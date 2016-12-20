@@ -14,6 +14,10 @@
 #   limitations under the License.
 #
 
+"""
+A utility to determine the ID fo the Slack user assigned as the bot.
+"""
+
 import sys
 import argparse
 from slackclient import SlackClient
@@ -28,7 +32,9 @@ def zonebot_getid_main():
 
     #  Set up the command line arguments we support
     parser = argparse.ArgumentParser(description='Find the ID for a Slack bot user',
-                                     epilog="Version " + zonebot.__version__ + " (c) " + zonebot.__author__)
+                                     epilog="Version " + zonebot.__version__ + " (c) " +
+                                            zonebot.__author__ +
+                                            " (" + zonebot.__email__ + ")")
 
     parser.add_argument('-a', '--apitoken',
                         metavar='key',
