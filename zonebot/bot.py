@@ -46,8 +46,8 @@ class ZoneBot(object):
         self.last_ping = 0
         self.slack_client = SlackClient(config['Slack']['api_token'])
 
-        self.AT_BOT = "<@" + config['Slack']['bot_id'] + ">"
-        self.BOT_NAME = config['Slack']['bot_name'] or "zonebot"
+        self.at_bot = "<@" + config['Slack']['bot_id'] + ">"
+        self.bot_name = config['Slack']['bot_name'] or "zonebot"
 
     def start(self):
         """
@@ -90,29 +90,47 @@ class ZoneBot(object):
         """
         Starts the bot by connecting to Slack.
         """
+
         self.zoneminder = ZoneMinder(self.config)
         self.zoneminder.login()
 
-        self.connect()
+        while True:
+            try:
+                self.__polling_loop()
+            except KeyboardInterrupt:
+                return
+            except (TimeoutError, ConnectionResetError) as e:
+                LOGGER.warning("Connection to Slack lost, reconnecting: %s", str(e))
+                time.sleep(30)
+            except Exception as e:
+                LOGGER.exception("Unhandled exception, terminating process: %s", str(e))
+                return
 
-        READ_WEBSOCKET_DELAY = 1  # 1 second delay between reading from firehose
+    def __polling_loop(self):
+        """Polling loop, without re-connect logic"""
+
+        read_websocket_delay = 1  # 1 second delay between reading from firehose
+
+        self.connect()
 
         while True:
             for reply in self.slack_client.rtm_read():
-                user, channel, command = self._extract_command(reply, self.AT_BOT)
+                user, channel, command = self._extract_command(reply, self.at_bot)
                 if user and channel and command:
                     self.handle_command(user, command, channel)
 
             self.autoping()
-            time.sleep(READ_WEBSOCKET_DELAY)
+            time.sleep(read_websocket_delay)
 
     def connect(self):
         """Convenience method that creates Server instance"""
+
         self.slack_client.rtm_connect()
 
     def autoping(self):
         """Pings the remote system to keep the connection alive"""
-        # hardcode the interval to 3 seconds
+
+        # hardcode the interval to 60 seconds
         now = int(time.time())
         if now > self.last_ping + 60:
             self.slack_client.server.ping()
@@ -173,7 +191,7 @@ class ZoneBot(object):
         if not command_string:
             words = ['help']
         else:
-            words = re.split('\W+', command_string)
+            words = re.split(r'\W+', command_string)
 
         # Remove any blank or empty entries
         words = [x for x in words if x]
